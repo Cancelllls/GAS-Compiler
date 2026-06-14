@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    :root {
+      --bg-main: #1e1e1e;
+      --bg-side: #252526;
+      --bg-terminal: #000000;
+      --text-main: #d4d4d4;
+      --border: #444444;
+      --accent: #007acc;
+      --line-num: #858585;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+    }
+
+    /* IDE Layout */
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .toolbar {
+      height: 35px;
+      background-color: var(--bg-side);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .workspace {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Custom Editor */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+    }
+
+    .editor-wrapper {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #line-numbers {
+      width: 45px;
+      background-color: var(--bg-side);
+      color: var(--line-num);
+      text-align: right;
+      padding: 10px 5px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 20px;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    #code-input {
+      flex: 1;
+      background: transparent;
+      color: var(--text-main);
+      border: none;
+      padding: 10px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 20px;
+      resize: none;
+      outline: none;
+      white-space: pre;
+      overflow: auto;
+    }
+
+    /* Terminal */
+    .terminal-container {
+      width: 40%;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-terminal);
+    }
+
+    .terminal-header {
+      background-color: var(--bg-side);
+      padding: 5px 10px;
+      font-size: 12px;
+      border-bottom: 1px solid var(--border);
+      color: #aaa;
+    }
+
+    #terminal-output {
+      flex: 1;
+      padding: 10px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+      color: #00ff00;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 22px;
+      background-color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 12px;
+      color: white;
+    }
+
+    /* UI Elements */
+    .run-btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+
+    .run-btn:hover { background-color: #218838; }
+    .run-btn:disabled { background-color: #555; cursor: not-allowed; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #444; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="toolbar">
+    <button class="run-btn" id="run-btn" onclick="runCode()">▶ RUN CODE</button>
+    <span style="margin-left: 20px; font-size: 13px; color: #888;">Zero-Dep GAS IDE v1.0</span>
+  </div>
+
+  <div class="workspace">
+    <!-- Custom Text Editor -->
+    <div class="editor-container">
+      <div class="editor-wrapper">
+        <div id="line-numbers">1</div>
+        <textarea id="code-input" spellcheck="false">// Welcome to Zero-Dep IDE
+LET x = 1
+LET limit = 10
+
+PRINT "Calculating sequence..."
+
+WHILE x <= limit
+  PRINT "Step: " + x
+  ADD x 1
+ENDWHILE
+
+PRINT "Done!"</textarea>
+      </div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="terminal-container">
+      <div class="terminal-header">TERMINAL</div>
+      <div id="terminal-output">Ready for execution.</div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div id="status-left">Idle</div>
+    <div id="status-right">Line: 1, Col: 1</div>
+  </div>
+</div>
+
+<script>
+  const codeInput = document.getElementById('code-input');
+  const lineNumbers = document.getElementById('line-numbers');
+  const terminalOutput = document.getElementById('terminal-output');
+  const runBtn = document.getElementById('run-btn');
+  const statusLeft = document.getElementById('status-left');
+  const statusRight = document.getElementById('status-right');
+
+  /**
+   * Sync Scrolling between Line Numbers and Textarea
+   */
+  codeInput.addEventListener('scroll', () => {
+    lineNumbers.scrollTop = codeInput.scrollTop;
+  });
+
+  /**
+   * Update Line Numbers dynamically
+   */
+  function updateLineNumbers() {
+    const lines = codeInput.value.split('\n').length;
+    let numbers = '';
+    for (let i = 1; i <= lines; i++) {
+      numbers += i + '<br>';
+    }
+    lineNumbers.innerHTML = numbers;
+  }
+
+  /**
+   * Update Cursor Position Status
+   */
+  function updateCursorPos() {
+    const textBefore = codeInput.value.substring(0, codeInput.selectionStart);
+    const lines = textBefore.split('\n');
+    const currLine = lines.length;
+    const currCol = lines[lines.length - 1].length + 1;
+    statusRight.innerText = `Line: ${currLine}, Col: ${currCol}`;
+  }
+
+  /**
+   * Intercept Tab key for 2-space indentation
+   */
+  codeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = codeInput.selectionStart;
+      const end = codeInput.selectionEnd;
+      codeInput.value = codeInput.value.substring(0, start) + "  " + codeInput.value.substring(end);
+      codeInput.selectionStart = codeInput.selectionEnd = start + 2;
+      updateLineNumbers();
+    }
+    
+    // Ctrl + Enter shortcut to run
+    if (e.ctrlKey && e.key === 'Enter') {
+      runCode();
+    }
+  });
+
+  codeInput.addEventListener('input', () => {
+    updateLineNumbers();
+    updateCursorPos();
+  });
+
+  codeInput.addEventListener('mouseup', updateCursorPos);
+  codeInput.addEventListener('keyup', updateCursorPos);
+
+  /**
+   * Execute code on Backend
+   */
+  function runCode() {
+    const code = codeInput.value;
+    
+    // UI Feedback
+    runBtn.disabled = true;
+    statusLeft.innerText = "Compiling & Running...";
+    terminalOutput.innerText = "> Executing script...\n";
+    terminalOutput.style.color = "#00ff00";
+
+    google.script.run
+      .withSuccessHandler((result) => {
+        terminalOutput.innerText += result;
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        runBtn.disabled = false;
+        statusLeft.innerText = result.includes("[COMPILER ERROR]") ? "Error" : "Success";
+        if (result.includes("[COMPILER ERROR]")) terminalOutput.style.color = "#ff4444";
+        setTimeout(() => { statusLeft.innerText = "Idle"; }, 3000);
+      })
+      .withFailureHandler((err) => {
+        terminalOutput.innerText += "\n[FATAL SYSTEM ERROR]: " + err.message;
+        terminalOutput.style.color = "#ff0000";
+        runBtn.disabled = false;
+        statusLeft.innerText = "Fatal Error";
+      })
+      .compileAndRun(code);
+  }
+
+  // Initial call to set line numbers
+  updateLineNumbers();
+</script>
+
+</body>
+</html>
