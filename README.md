@@ -52,7 +52,8 @@ A 100% self-contained, zero-dependency cloud programming workspace deployed as a
 
 ## 🔒 Security & Privacy
 
-This application runs entirely within the user's Google Workspace context. It uses no external tracking, no CDNs, and no third-party scripts, ensuring 100% data privacy and isolation.
+- **Anonymous Access**: The application is configured for access by "Anyone" (no Google account required).
+- **Isolation**: It runs entirely within the script's execution context. It uses no external tracking, no CDNs, and no third-party scripts, ensuring 100% data privacy.
 
 ---
 
