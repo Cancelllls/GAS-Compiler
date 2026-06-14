@@ -2,346 +2,293 @@
 <html>
 <head>
   <base target="_top">
-  <style id="theme-style">
-    /* Default: VS Code Dark+ */
+  <style>
     :root {
-      --bg-activity: #333333;
-      --bg-sidebar: #252526;
-      --bg-editor: #1e1e1e;
-      --bg-terminal: #000000;
-      --bg-status: #007acc;
-      --text-main: #d4d4d4;
-      --border: #444444;
-      --line-num: #858585;
-      --accent: #007acc;
-      
-      /* Syntax Colors */
-      --syn-keyword: #569cd6;
-      --syn-string: #ce9178;
-      --syn-comment: #6a9955;
-      --syn-number: #b5cea8;
-      --syn-func: #dcdcaa;
-      --syn-var: #9cdcfe;
+      --bg-activity: #333333; --bg-sidebar: #252526; --bg-editor: #1e1e1e;
+      --bg-terminal: #000000; --bg-status: #007acc; --bg-tabs: #252526;
+      --text-main: #d4d4d4; --border: #444444; --accent: #007acc;
+      --line-num: #858585; --syn-keyword: #569cd6; --syn-string: #ce9178;
+      --syn-comment: #6a9955; --syn-number: #b5cea8; --syn-func: #dcdcaa;
+      --syn-type: #4ec9b0; --syn-var: #9cdcfe;
     }
-
-    .theme-monokai {
-      --bg-activity: #272822;
-      --bg-sidebar: #3e3d32;
-      --bg-editor: #272822;
-      --text-main: #f8f8f2;
-      --syn-keyword: #f92672;
-      --syn-string: #e6db74;
-      --syn-comment: #75715e;
-      --syn-number: #ae81ff;
-      --syn-func: #a6e22e;
-      --syn-var: #66d9ef;
-    }
-
-    .theme-solarized {
-      --bg-activity: #00212b;
-      --bg-sidebar: #073642;
-      --bg-editor: #002b36;
-      --text-main: #839496;
-      --syn-keyword: #859900;
-      --syn-string: #2aa198;
-      --syn-comment: #586e75;
-      --syn-number: #d33682;
-      --syn-func: #268bd2;
-      --syn-var: #b58900;
-    }
-
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-      background-color: var(--bg-editor);
-      color: var(--text-main);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      overflow: hidden;
-    }
-
+    body, html { margin: 0; padding: 0; height: 100%; background: var(--bg-editor); color: var(--text-main); font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
     .app { display: flex; flex-direction: column; height: 100vh; }
-    
-    /* Layout */
-    .main { display: flex; flex: 1; overflow: hidden; }
-    
-    .activity-bar {
-      width: 50px; background: var(--bg-activity);
-      display: flex; flex-direction: column; align-items: center; padding-top: 10px;
-    }
-    .act-icon { font-size: 24px; margin-bottom: 20px; cursor: pointer; opacity: 0.6; }
-    .act-icon.active { opacity: 1; border-left: 2px solid white; width: 100%; text-align: center; }
-
-    .sidebar { width: 250px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-    .sidebar-header { padding: 10px; font-size: 11px; font-weight: bold; text-transform: uppercase; opacity: 0.7; }
-    .sidebar-content { flex: 1; padding: 10px; font-size: 13px; }
-
-    .editor-pane { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    
-    /* Tabs */
-    .tabs { height: 35px; background: var(--bg-sidebar); display: flex; align-items: center; border-bottom: 1px solid var(--border); }
-    .tab { padding: 0 15px; height: 100%; display: flex; align-items: center; background: var(--bg-editor); border-right: 1px solid var(--border); font-size: 13px; cursor: default; }
-    
-    /* Advanced Editor */
-    .editor-core { flex: 1; display: flex; position: relative; overflow: hidden; background: var(--bg-editor); }
-    
-    #line-numbers {
-      width: 50px; background: var(--bg-editor); color: var(--line-num);
-      text-align: right; padding: 10px 10px; font-family: 'Consolas', monospace;
-      font-size: 14px; line-height: 20px; border-right: 1px solid var(--border);
-    }
-
+    .main-area { display: flex; flex: 1; overflow: hidden; }
+    .activity-bar { width: 48px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding-top: 10px; flex-shrink: 0; }
+    .act-icon { font-size: 20px; margin-bottom: 25px; cursor: pointer; opacity: 0.6; width: 100%; text-align: center; }
+    .act-icon.active { opacity: 1; border-left: 2px solid white; }
+    .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; transition: width 0.2s; }
+    .sidebar-header { padding: 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #888; display: flex; justify-content: space-between; align-items: center; }
+    .sidebar-content { flex: 1; overflow-y: auto; }
+    .file-item { padding: 6px 20px; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: #ccc; }
+    .file-item:hover { background: #2a2d2e; }
+    .file-item.active { background: #37373d; color: white; }
+    .delete-btn { opacity: 0; color: #ff5555; font-size: 10px; padding: 2px 5px; }
+    .file-item:hover .delete-btn { opacity: 1; }
+    .editor-pane { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .tab-bar { height: 35px; background: var(--bg-tabs); display: flex; align-items: center; border-bottom: 1px solid var(--border); overflow-x: auto; }
+    .tab { padding: 0 15px; height: 100%; display: flex; align-items: center; background: #2d2d2d; border-right: 1px solid var(--border); font-size: 12px; cursor: pointer; min-width: 100px; color: #999; }
+    .tab.active { background: var(--bg-editor); border-top: 1px solid var(--accent); color: white; }
+    .tab-close { margin-left: 8px; font-size: 10px; opacity: 0.4; }
+    .tab-close:hover { opacity: 1; }
+    .editor-body { flex: 1; display: flex; position: relative; overflow: hidden; }
+    #line-numbers { width: 50px; background: var(--bg-editor); color: var(--line-num); text-align: right; padding: 10px; font-family: 'Consolas', monospace; font-size: 14px; line-height: 20px; border-right: 1px solid var(--border); overflow: hidden; }
     .code-container { flex: 1; position: relative; overflow: hidden; }
-    
-    #code-input, #highlight-layer {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      margin: 0; padding: 10px; border: none; outline: none;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 14px; line-height: 20px;
-      white-space: pre; overflow: auto;
-      box-sizing: border-box;
-      tab-size: 2;
-    }
-
-    #code-input {
-      background: transparent; color: transparent; caret-color: var(--text-main);
-      z-index: 2; resize: none;
-    }
-
-    #highlight-layer { z-index: 1; color: var(--text-main); pointer-events: none; }
-
-    /* Syntax Tokens */
-    .keyword { color: var(--syn-keyword); font-weight: bold; }
+    #code-input, #highlight-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 10px; border: none; outline: none; font-family: 'Consolas', monospace; font-size: 14px; line-height: 20px; white-space: pre; overflow: auto; box-sizing: border-box; tab-size: 2; }
+    #code-input { background: transparent; color: transparent; caret-color: white; z-index: 2; resize: none; }
+    #highlight-layer { z-index: 1; pointer-events: none; }
+    .keyword { color: var(--syn-keyword); }
     .string { color: var(--syn-string); }
-    .comment { color: var(--syn-comment); font-style: italic; }
+    .comment { color: var(--syn-comment); }
     .number { color: var(--syn-number); }
-    .function { color: var(--syn-func); }
-    .variable { color: var(--syn-var); }
-
-    /* Terminal */
-    .terminal-pane { height: 200px; background: var(--bg-terminal); border-top: 1px solid var(--border); display: flex; flex-direction: column; }
-    .terminal-header { background: var(--bg-sidebar); padding: 5px 15px; font-size: 11px; display: flex; gap: 20px; }
-    #terminal-out { flex: 1; padding: 10px; color: #00ff00; font-family: monospace; overflow-y: auto; font-size: 13px; }
-
-    /* Status Bar */
-    .status-bar { height: 22px; background: var(--bg-status); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font-size: 12px; }
-    
-    /* Settings */
-    select { background: #3c3c3c; color: white; border: 1px solid var(--border); padding: 2px; font-size: 12px; width: 100%; margin-bottom: 10px; }
-    
-    .run-btn { background: #28a745; color: white; border: none; padding: 5px 15px; cursor: pointer; font-weight: bold; margin-left: 10px; border-radius: 2px; }
+    .func { color: var(--syn-func); }
+    .type { color: var(--syn-type); }
+    #intellisense { position: absolute; display: none; z-index: 1000; background: #252526; border: 1px solid #454545; box-shadow: 0 4px 12px rgba(0,0,0,0.5); width: 300px; max-height: 260px; overflow-y: auto; border-radius: 4px; }
+    .suggestion { padding: 5px 12px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: #ccc; }
+    .suggestion:hover, .suggestion.selected { background: #094771; color: white; }
+    .s-icon { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 9px; border-radius: 2px; font-weight: bold; flex-shrink: 0; }
+    .s-k { background: #569cd622; color: #569cd6; border: 1px solid #569cd6; }
+    .s-m { background: #dcdcaa22; color: #dcdcaa; border: 1px solid #dcdcaa; }
+    .s-t { background: #4ec9b022; color: #4ec9b0; border: 1px solid #4ec9b0; }
+    .terminal { height: 180px; background: #000; border-top: 1px solid var(--border); display: flex; flex-direction: column; }
+    #terminal-log { flex: 1; padding: 12px; font-family: 'Consolas', monospace; font-size: 13px; color: #00ff00; overflow-y: auto; white-space: pre-wrap; }
+    .status-bar { height: 22px; background: var(--bg-status); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 12px; color: white; }
+    .run-btn { background: #28a745; color: white; border: none; padding: 4px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; margin-left: 10px; }
+    #modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; display:none; justify-content:center; align-items:center; }
+    .modal-box { background: var(--bg-sidebar); padding: 25px; border: 1px solid var(--border); width: 320px; border-radius: 4px; }
+    input { width:100%; background:#3c3c3c; color:white; border:1px solid var(--border); padding:8px; margin-top:10px; border-radius:2px; box-sizing:border-box; }
   </style>
 </head>
-<body class="theme-dark-plus">
-
+<body>
+<div id="intellisense"></div>
+<div id="modal">
+  <div class="modal-box">
+    <div id="modal-title" style="font-size:13px">Create New File:</div>
+    <input type="text" id="new-name" placeholder="filename.js">
+    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px">
+      <button onclick="closeModal()">Cancel</button>
+      <button id="modal-confirm" style="background:var(--accent); color:white; border:none; padding:5px 15px; border-radius:2px">Confirm</button>
+    </div>
+  </div>
+</div>
 <div class="app">
-  <div class="main">
-    <!-- Activity Bar -->
+  <div class="main-area">
     <div class="activity-bar">
-      <div class="act-icon active" title="Explorer">📄</div>
-      <div class="act-icon" title="Search">🔍</div>
-      <div class="act-icon" title="Extensions">🧱</div>
-      <div class="act-icon" style="margin-top:auto" title="Settings">⚙️</div>
+      <div class="act-icon active" onclick="toggleView('explorer')">📄</div>
+      <div class="act-icon" onclick="toggleView('settings')">⚙️</div>
     </div>
-
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-header">Explorer</div>
-      <div class="sidebar-content">
-        <div style="margin-bottom:10px">📁 WORKSPACE</div>
-        <div style="padding-left:15px">📄 main.gas</div>
-        
-        <div class="sidebar-header" style="margin-top:20px; padding:10px 0">Settings</div>
-        <label style="font-size:11px">LANGUAGE</label>
-        <select id="lang-select" onchange="updateSyntax()">
-          <option value="custom">Custom GAS</option>
-          <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-        </select>
-
-        <label style="font-size:11px">THEME</label>
-        <select id="theme-select" onchange="updateTheme()">
-          <option value="dark-plus">Dark+</option>
-          <option value="monokai">Monokai</option>
-          <option value="solarized">Solarized Dark</option>
-        </select>
+    <div class="sidebar" id="sidebar-main">
+      <div id="view-explorer">
+        <div class="sidebar-header">Explorer <span style="cursor:pointer; font-size:18px" onclick="openModal('create')">+</span></div>
+        <div class="sidebar-content" id="file-list"></div>
+      </div>
+      <div id="view-settings" style="display:none">
+        <div class="sidebar-header">Environment</div>
+        <div style="padding:12px">
+          <label style="font-size:11px">LANGUAGE</label>
+          <select id="lang-select" style="width:100%; background:#3c3c3c; color:white; border:1px solid var(--border); padding:5px; margin-bottom:15px" onchange="handleInput()">
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+            <option value="rust">Rust</option>
+            <option value="go">Go</option>
+            <option value="ruby">Ruby</option>
+            <option value="sql">SQL</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="custom">Custom GAS</option>
+          </select>
+          <label style="font-size:11px">THEME</label>
+          <select id="theme-select" style="width:100%; background:#3c3c3c; color:white; border:1px solid var(--border); padding:5px">
+            <option value="dark-plus">Dark+</option>
+          </select>
+        </div>
       </div>
     </div>
-
-    <!-- Editor -->
     <div class="editor-pane">
-      <div class="tabs">
-        <div class="tab">main.gas</div>
-        <button class="run-btn" onclick="execute()">▶ RUN</button>
-      </div>
-      <div class="editor-core">
+      <div class="tab-bar" id="tab-list"></div>
+      <div class="editor-body">
         <div id="line-numbers">1</div>
         <div class="code-container">
           <div id="highlight-layer"></div>
-          <textarea id="code-input" spellcheck="false" oninput="onCodeInput()" onscroll="onCodeScroll()">LET x = 1
-LET limit = 10
-
-PRINT "Starting Multi-language Clone..."
-
-WHILE x <= limit
-  PRINT "Step: " + x
-  ADD x 1
-ENDWHILE
-
-PRINT "Success!"</textarea>
+          <textarea id="code-input" spellcheck="false" oninput="handleInput()" onscroll="handleScroll()"></textarea>
         </div>
       </div>
-
-      <!-- Terminal -->
-      <div class="terminal-pane">
-        <div class="terminal-header">
-          <span>TERMINAL</span>
-          <span>OUTPUT</span>
-          <span>DEBUG CONSOLE</span>
-        </div>
-        <div id="terminal-out">Ready to compile...</div>
+      <div class="terminal">
+        <div id="terminal-log">Workspace initialized. Multi-language support active.</div>
       </div>
     </div>
   </div>
-
-  <!-- Status Bar -->
   <div class="status-bar">
     <div id="status-l">Ready</div>
-    <div id="status-r">UTF-8 | Ln 1, Col 1 | Spaces: 2</div>
+    <button class="run-btn" onclick="runCode()">▶ RUN</button>
+    <div id="status-r">Ln 1, Col 1 | Spaces: 2 | UTF-8</div>
   </div>
 </div>
-
 <script>
-  const input = document.getElementById('code-input');
-  const highlight = document.getElementById('highlight-layer');
-  const lineNums = document.getElementById('line-numbers');
-  const term = document.getElementById('terminal-out');
-
-  // Syntax Engine
-  const rules = {
-    custom: [
-      { regex: /\b(LET|ADD|PRINT|WHILE|ENDWHILE)\b/g, class: 'keyword' },
-      { regex: /".*?"/g, class: 'string' },
-      { regex: /\/\/.*/g, class: 'comment' },
-      { regex: /\b\d+\b/g, class: 'number' }
-    ],
-    javascript: [
-      { regex: /\b(const|let|var|function|return|if|else|for|while|import|export|class|new|try|catch)\b/g, class: 'keyword' },
-      { regex: /".*?"|'.*?'|`.*?`/g, class: 'string' },
-      { regex: /\/\/.*|\/\*[\s\S]*?\*\//g, class: 'comment' },
-      { regex: /\b\d+\b/g, class: 'number' },
-      { regex: /\b[a-zA-Z_]\w*(?=\s*\()/g, class: 'function' }
-    ],
-    python: [
-      { regex: /\b(def|return|if|elif|else|for|while|import|from|class|try|except|print|as|in)\b/g, class: 'keyword' },
-      { regex: /".*?"|'.*?'/g, class: 'string' },
-      { regex: /#.*/g, class: 'comment' },
-      { regex: /\b\d+\b/g, class: 'number' }
-    ]
+  let workspace = {}, current = null, openTabs = [];
+  let isBoxVisible = false, selectedIdx = 0, currentSuggestions = [];
+  const el = id => document.getElementById(id);
+  const input = el('code-input'), highlight = el('highlight-layer'), lineNums = el('line-numbers'), log = el('terminal-log'), box = el('intellisense');
+  const database = {
+    javascript: [{k:'const', t:'k'}, {k:'let', t:'k'}, {k:'function', t:'k'}, {k:'return', t:'k'}, {k:'console.log', t:'m'}, {k:'async', t:'k'}, {k:'await', t:'k'}],
+    python: [{k:'def', t:'k'}, {k:'return', t:'k'}, {k:'print', t:'m'}, {k:'import', t:'k'}],
+    java: [{k:'public', t:'k'}, {k:'static', t:'k'}, {k:'void', t:'k'}, {k:'System.out.println', t:'m'}, {k:'String', t:'t'}],
+    cpp: [{k:'int', t:'t'}, {k:'std::cout', t:'m'}, {k:'return', t:'k'}],
+    rust: [{k:'fn', t:'k'}, {k:'let', t:'k'}, {k:'println!', t:'m'}],
+    go: [{k:'func', t:'k'}, {k:'fmt.Println', t:'m'}],
+    ruby: [{k:'def', t:'k'}, {k:'puts', t:'m'}],
+    sql: [{k:'SELECT', t:'k'}, {k:'FROM', t:'k'}],
+    html: [{k:'div', t:'t'}, {k:'span', t:'t'}],
+    css: [{k:'display', t:'k'}, {k:'color', t:'k'}],
+    custom: [{k:'LET', t:'k'}, {k:'PRINT', t:'k'}]
   };
-
-  function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
+  window.onload = () => {
+    google.script.run.withSuccessHandler(ws => {
+      workspace = ws; current = Object.keys(ws)[0]; if(current) openFile(current); renderList();
+    }).getWorkspace();
+  };
+  function openFile(name) {
+    if (current) workspace[current].content = input.value;
+    current = name; input.value = workspace[name].content;
+    if (!openTabs.includes(name)) openTabs.push(name);
+    const ext = name.split('.').pop();
+    const map = {js:'javascript', py:'python', cpp:'cpp', java:'java', rs:'rust', go:'go', rb:'ruby', sql:'sql', html:'html', css:'css', gas:'custom'};
+    if (map[ext]) el('lang-select').value = map[ext];
+    renderTabs(); renderList(); handleInput();
   }
-
-  function applyHighlight(text, lang) {
-    let html = escapeHTML(text);
-    const langRules = rules[lang] || rules.custom;
-    
-    // We need to apply regex on the raw text but preserve HTML tags
-    // A simple trick: use markers
-    let matches = [];
-    langRules.forEach(rule => {
-      let match;
-      while ((match = rule.regex.exec(text)) !== null) {
-        matches.push({ start: match.index, end: match.index + match[0].length, class: rule.class });
-      }
-    });
-
-    // Sort matches by start index
-    matches.sort((a, b) => a.start - b.start);
-
-    // Filter overlapping (keep first)
-    let lastEnd = 0;
-    let finalHtml = "";
-    matches.forEach(m => {
-      if (m.start >= lastEnd) {
-        finalHtml += escapeHTML(text.substring(lastEnd, m.start));
-        finalHtml += `<span class="${m.class}">${escapeHTML(text.substring(m.start, m.end))}</span>`;
-        lastEnd = m.end;
-      }
-    });
-    finalHtml += escapeHTML(text.substring(lastEnd));
-    
-    return finalHtml + "\n"; // Extra newline for scroll sync
+  function renderList() {
+    el('file-list').innerHTML = Object.keys(workspace).map(n => `
+      <div class="file-item ${n === current ? 'active' : ''}" onclick="openFile('${n}')">
+        <span>${n}</span>
+        <span class="delete-btn" onclick="event.stopPropagation(); removeFile('${n}')">✕</span>
+      </div>
+    `).join('');
   }
-
-  function onCodeInput() {
-    const text = input.value;
-    const lang = document.getElementById('lang-select').value;
-    highlight.innerHTML = applyHighlight(text, lang);
-    
-    // Update Line Numbers
-    const count = text.split('\n').length;
-    lineNums.innerHTML = Array.from({length: count}, (_, i) => i + 1).join('<br>');
-    
-    updateCursorInfo();
-  }
-
-  function onCodeScroll() {
-    highlight.scrollTop = input.scrollTop;
-    highlight.scrollLeft = input.scrollLeft;
-    lineNums.scrollTop = input.scrollTop;
-  }
-
-  function updateTheme() {
-    const theme = document.getElementById('theme-select').value;
-    document.body.className = 'theme-' + theme;
-  }
-
-  function updateSyntax() {
-    onCodeInput();
-  }
-
-  function updateCursorInfo() {
-    const start = input.selectionStart;
-    const textBefore = input.value.substring(0, start);
-    const lines = textBefore.split('\n');
-    const ln = lines.length;
-    const col = lines[lines.length - 1].length + 1;
-    document.getElementById('status-r').innerText = `UTF-8 | Ln ${ln}, Col ${col} | Spaces: 2`;
-  }
-
-  // Handle Tab and Enter indentation
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const s = input.selectionStart;
-      input.value = input.value.substring(0, s) + "  " + input.value.substring(input.selectionEnd);
-      input.selectionStart = input.selectionEnd = s + 2;
-      onCodeInput();
+  function removeFile(n) {
+    if (confirm(`Delete ${n}?`)) {
+      google.script.run.withSuccessHandler(res => {
+        delete workspace[n]; openTabs = openTabs.filter(t => t !== n);
+        current = openTabs[0] || Object.keys(workspace)[0] || null;
+        if (current) openFile(current); else { input.value = ""; highlight.innerHTML = ""; }
+        renderList(); renderTabs(); log.innerText = res;
+      }).deleteFile(n);
     }
-  });
-
-  input.addEventListener('click', updateCursorInfo);
-  input.addEventListener('keyup', updateCursorInfo);
-
-  function execute() {
-    const code = input.value;
-    const lang = document.getElementById('lang-select').value;
-    term.innerText = "> Initializing compilation for [" + lang.toUpperCase() + "]...\n";
-    document.getElementById('status-l').innerText = "Running...";
-    
-    google.script.run
-      .withSuccessHandler(res => {
-        term.innerText = res;
-        document.getElementById('status-l').innerText = "Success";
-        term.scrollTop = term.scrollHeight;
-      })
-      .compileAndRun(code, lang);
   }
-
-  // Initial Sync
-  onCodeInput();
+  function closeTab(n) {
+    openTabs = openTabs.filter(t => t !== n);
+    if (current === n) {
+      current = openTabs[0] || Object.keys(workspace)[0] || null;
+      if(current) openFile(current); else { input.value = ""; highlight.innerHTML = ""; }
+    } else renderTabs();
+  }
+  function renderTabs() {
+    el('tab-list').innerHTML = openTabs.map(n => `
+      <div class="tab ${n === current ? 'active' : ''}" onclick="openFile('${n}')">
+        ${n} <span class="tab-close" onclick="event.stopPropagation(); closeTab('${n}')">✕</span>
+      </div>
+    `).join('');
+  }
+  function handleInput() {
+    const text = input.value, lang = el('lang-select').value;
+    let h = text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]));
+    const db = database[lang] || [];
+    db.forEach(item => {
+      const r = new RegExp(`\\b${item.k.replace(/[!]/g, '\\!')}\\b`, 'g');
+      const cls = item.t === 'k' ? 'keyword' : (item.t === 't' ? 'type' : 'func');
+      h = h.replace(r, `<span class="${cls}">${item.k}</span>`);
+    });
+    h = h.replace(/".*?"|'.*?'/g, m => `<span class="string">${m}</span>`);
+    h = h.replace(/\/\/.*|\/\*[\s\S]*?\*\/|#.*|--.*/g, m => `<span class="comment">${m}</span>`);
+    h = h.replace(/\b\d+\b/g, m => `<span class="number">${m}</span>`);
+    highlight.innerHTML = h + "\n";
+    lineNums.innerHTML = Array.from({length: text.split('\n').length}, (_, i) => i+1).join('<br>');
+    updateStatus(); triggerIntel();
+  }
+  function handleScroll() { highlight.scrollTop = input.scrollTop; highlight.scrollLeft = input.scrollLeft; lineNums.scrollTop = input.scrollTop; }
+  function updateStatus() {
+    const pos = input.selectionStart, lines = input.value.substring(0, pos).split('\n');
+    el('status-r').innerText = `Ln ${lines.length}, Col ${lines[lines.length-1].length + 1} | Spaces: 2 | UTF-8`;
+  }
+  function triggerIntel() {
+    const pos = input.selectionStart, text = input.value.substring(0, pos), word = text.split(/[\s.()\[\]{}]/).pop();
+    const lang = el('lang-select').value, db = database[lang] || [];
+    if (word.length >= 1) {
+      currentSuggestions = db.filter(i => i.k.toLowerCase().includes(word.toLowerCase()));
+      if (currentSuggestions.length > 0) showBox(); else hideBox();
+    } else hideBox();
+  }
+  function showBox() {
+    selectedIdx = 0; isBoxVisible = true;
+    box.innerHTML = currentSuggestions.map((s, i) => `
+      <div class="suggestion ${i === 0 ? 'selected' : ''}" onclick="applySuggestion('${s.k}')">
+        <span class="s-icon ${s.t==='k'?'s-k':(s.t==='t'?'s-t':'s-m')}">${s.t.toUpperCase()}</span> ${s.k}
+      </div>
+    `).join('');
+    const div = document.createElement('div'); const st = window.getComputedStyle(input);
+    for(let p of st) div.style[p] = st[p];
+    div.style.position = 'absolute'; div.style.visibility = 'hidden'; div.style.whiteSpace = 'pre-wrap';
+    div.textContent = input.value.substring(0, input.selectionStart);
+    const span = document.createElement('span'); span.textContent = '|'; div.appendChild(span);
+    document.body.appendChild(div);
+    const r = span.getBoundingClientRect(), ir = input.getBoundingClientRect();
+    document.body.removeChild(div);
+    box.style.display = 'block';
+    box.style.left = Math.min(r.left, ir.right - 300) + 'px';
+    box.style.top = Math.min(r.top - input.scrollTop + 20, ir.bottom - 40) + 'px';
+  }
+  function hideBox() { isBoxVisible = false; box.style.display = 'none'; }
+  function applySuggestion(k) {
+    const pos = input.selectionStart, text = input.value.substring(0, pos);
+    const wordMatch = text.match(/[\s.()\[\]{}]?([a-zA-Z_0-9!]*)$/);
+    const word = wordMatch ? wordMatch[1] : "";
+    input.value = input.value.substring(0, pos - word.length) + k + input.value.substring(pos);
+    input.selectionStart = input.selectionEnd = pos - word.length + k.length;
+    hideBox(); handleInput();
+  }
+  input.addEventListener('keydown', e => {
+    if (isBoxVisible) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); selectedIdx = (selectedIdx + 1) % currentSuggestions.length; updateBox(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); selectedIdx = (selectedIdx - 1 + currentSuggestions.length) % currentSuggestions.length; updateBox(); }
+      if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); applySuggestion(currentSuggestions[selectedIdx].k); }
+      if (e.key === 'Escape') hideBox();
+    }
+    if (e.key === 'Tab' && !isBoxVisible) {
+      e.preventDefault(); const s = input.selectionStart;
+      input.value = input.value.substring(0, s) + "  " + input.value.substring(input.selectionEnd);
+      input.selectionStart = input.selectionEnd = s + 2; handleInput();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveCurrent(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runCode(); }
+  });
+  function updateBox() {
+    const items = box.querySelectorAll('.suggestion');
+    items.forEach((it, i) => { it.classList.toggle('selected', i === selectedIdx); if (i === selectedIdx) it.scrollIntoView({block:'nearest'}); });
+  }
+  function saveCurrent() {
+    if (!current) return;
+    el('status-l').innerText = "Saving...";
+    google.script.run.withSuccessHandler(res => {
+      el('status-l').innerText = "Saved"; setTimeout(()=>el('status-l').innerText="Ready", 2000);
+    }).saveFile(current, input.value);
+  }
+  function runCode() {
+    const code = input.value, lang = el('lang-select').value;
+    log.innerText = `> Running ${current} (${lang.toUpperCase()})...\n`;
+    google.script.run.withSuccessHandler(res => { log.innerText += res; log.scrollTop = log.scrollHeight; }).compileAndRun(code, lang);
+  }
+  function openModal(type) { el('modal').style.display = 'flex'; el('new-name').focus(); el('modal-confirm').onclick = confirmCreate; }
+  function closeModal() { el('modal').style.display = 'none'; }
+  function confirmCreate() {
+    const n = el('new-name').value;
+    if (n) { workspace[n] = {content: ""}; openFile(n); closeModal(); el('new-name').value = ""; }
+  }
+  function toggleView(v) {
+    el('view-explorer').style.display = v==='explorer'?'block':'none';
+    el('view-settings').style.display = v==='settings'?'block':'none';
+    document.querySelectorAll('.act-icon').forEach((icon, i) => icon.classList.toggle('active', (v==='explorer' && i===0) || (v==='settings' && i===1)));
+  }
 </script>
-
 </body>
 </html>
