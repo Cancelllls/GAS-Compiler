@@ -1,0 +1,1710 @@
+<script>
+// ═══════════════════════════════════════════════════════════
+// GAS Cloud IDE - VS Code Clone - Complete JavaScript Engine
+// ═══════════════════════════════════════════════════════════
+
+// ─── Theme Definitions ───────────────────────────────────
+const themes = {
+  darkplus: {
+    activity: "#181818", side: "#252526", main: "#1e1e1e", tabs: "#181818",
+    terminal: "#1e1e1e", text: "#cccccc", textDark: "#858585",
+    accent: "#007acc", border: "#2b2b2b", tabInactive: "#181818",
+    tabActive: "#1e1e1e", titlebar: "#323233", input: "#313131",
+    hover: "#2a2d2e", selected: "#04395e"
+  },
+  monokai: {
+    activity: "#191919", side: "#272822", main: "#272822", tabs: "#1e1f1c",
+    terminal: "#1e1f1c", text: "#f8f8f2", textDark: "#75715e",
+    accent: "#a6e22e", border: "#3e3d32", tabInactive: "#1e1f1c",
+    tabActive: "#272822", titlebar: "#1e1f1c", input: "#3e3d32",
+    hover: "#3e3d32", selected: "#49483e"
+  },
+  dracula: {
+    activity: "#191a21", side: "#21222c", main: "#282a36", tabs: "#191a21",
+    terminal: "#282a36", text: "#f8f8f2", textDark: "#6272a4",
+    accent: "#bd93f9", border: "#44475a", tabInactive: "#191a21",
+    tabActive: "#282a36", titlebar: "#191a21", input: "#44475a",
+    hover: "#44475a", selected: "#44475a"
+  },
+  solarized: {
+    activity: "#00212b", side: "#002b36", main: "#073642", tabs: "#00212b",
+    terminal: "#002b36", text: "#839496", textDark: "#586e75",
+    accent: "#268bd2", border: "#0a5266", tabInactive: "#00212b",
+    tabActive: "#073642", titlebar: "#00212b", input: "#0a5266",
+    hover: "#0a5266", selected: "#0a5266"
+  },
+  "github-dark": {
+    activity: "#0d1117", side: "#161b22", main: "#0d1117", tabs: "#0d1117",
+    terminal: "#0d1117", text: "#c9d1d9", textDark: "#8b949e",
+    accent: "#58a6ff", border: "#30363d", tabInactive: "#0d1117",
+    tabActive: "#161b22", titlebar: "#161b22", input: "#21262d",
+    hover: "#21262d", selected: "#1f6feb33"
+  }
+};
+
+// ─── Tokenizer Rules ─────────────────────────────────────
+const tokenizerRules = {
+  javascript: {
+    comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+    string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/,
+    number: /\b0x[a-fA-F0-9]+\b|\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/,
+    keyword: /\b(let|const|var|function|return|if|else|for|while|do|switch|case|default|break|continue|try|catch|finally|throw|new|this|class|extends|import|export|from|typeof|instanceof|in|of|async|await|yield|true|false|null|undefined|void|delete|super|with|debugger|static|get|set)\b/,
+    builtin: /\b(console|document|window|Math|JSON|Array|Object|String|Number|Boolean|Map|Set|Promise|RegExp|Date|Error|Symbol|parseInt|parseFloat|isNaN|isFinite|encodeURI|decodeURI|setTimeout|setInterval|fetch|require)\b/,
+    function: /\b([a-zA-Z_$]\w*)\s*(?=\()/,
+    operator: /[-+*/%=!&|^<>~?:]+|\.{3}/,
+    punctuation: /[{}()\[\],;.]/
+  },
+  gas: {
+    comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+    string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/,
+    number: /\b0x[a-fA-F0-9]+\b|\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/,
+    keyword: /\b(let|const|var|function|return|if|else|for|while|do|switch|case|default|break|continue|try|catch|finally|throw|new|this|class|extends|import|export|from|typeof|instanceof|in|of|async|await|true|false|null|undefined)\b/,
+    builtin: /\b(console|document|window|google|script|run|PropertiesService|HtmlService|Logger|SpreadsheetApp|DocumentApp|SlidesApp|DriveApp|GmailApp|CalendarApp|UrlFetchApp|Session|User|Utilities|MailApp|ContentService|CacheService|LockService|ScriptApp)\b/,
+    function: /\b([a-zA-Z_$]\w*)\s*(?=\()/,
+    operator: /[-+*/%=!&|^<>~?:]/,
+    punctuation: /[{}()\[\],;.]/
+  },
+  python: {
+    comment: /#.*/,
+    string: /"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+    number: /\b\d+(?:\.\d+)?\b/,
+    keyword: /\b(def|return|if|elif|else|for|while|break|continue|pass|import|from|as|in|is|and|or|not|try|except|finally|raise|assert|class|with|lambda|global|nonlocal|True|False|None|yield|async|await)\b/,
+    builtin: /\b(print|input|len|range|int|float|str|list|dict|tuple|set|bool|type|isinstance|hasattr|getattr|setattr|map|filter|zip|enumerate|sorted|reversed|min|max|sum|abs|round|open|super|property|staticmethod|classmethod)\b/,
+    decorator: /@\w+/,
+    function: /\b([a-zA-Z_]\w*)\s*(?=\()/,
+    operator: /[-+*/%=!&|^<>~?:]/,
+    punctuation: /[{}()\[\],;.]/
+  },
+  cpp: {
+    comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+    string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+    number: /\b\d+(?:\.\d+)?\b/,
+    keyword: /\b(auto|break|case|catch|char|class|const|constexpr|continue|default|delete|do|double|else|enum|explicit|export|extern|false|float|for|friend|goto|if|inline|int|long|mutable|namespace|new|noexcept|nullptr|operator|override|private|protected|public|register|return|short|signed|sizeof|static|static_cast|struct|switch|template|this|throw|true|try|typedef|typeid|typename|union|unsigned|using|virtual|void|volatile|wchar_t|while)\b/,
+    builtin: /\b(std|cout|cin|endl|cerr|string|vector|map|set|pair|queue|stack|deque|array|bitset|list|unordered_map|unordered_set|unique_ptr|shared_ptr|make_unique|make_shared|move|forward|swap|sort|find|begin|end|size|push_back|pop_back|emplace_back|insert|erase|clear|empty|front|back|at|reserve|resize|capacity)\b/,
+    preprocessor: /#\s*(include|define|ifdef|ifndef|endif|if|elif|else|undef|pragma)\b.*|#include\s*<[^>]+>/,
+    function: /\b([a-zA-Z_]\w*)\s*(?=\()/,
+    operator: /[-+*/%=!&|^<>~?:]/,
+    punctuation: /[{}()\[\],;.]/
+  },
+  java: {
+    comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+    string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+    number: /\b\d+(?:\.\d+)?[lLfFdD]?\b/,
+    keyword: /\b(abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|transient|try|void|volatile|while|true|false|null)\b/,
+    builtin: /\b(System|String|Integer|Double|Float|Long|Short|Byte|Boolean|Character|Object|Class|Math|Arrays|Collections|List|ArrayList|Map|HashMap|Set|HashSet|Scanner|StringBuilder|Thread|Runnable|Exception|RuntimeException|IOException)\b/,
+    annotation: /@\w+/,
+    function: /\b([a-zA-Z_]\w*)\s*(?=\()/,
+    operator: /[-+*/%=!&|^<>~?:]/,
+    punctuation: /[{}()\[\],;.]/
+  },
+  rust: {
+    comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+    string: /"(?:\\.|[^"\\])*"|'[^']'/,
+    number: /\b\d+(?:\.\d+)?(?:u8|u16|u32|u64|u128|i8|i16|i32|i64|i128|f32|f64|usize|isize)?\b/,
+    keyword: /\b(fn|let|mut|const|static|ref|match|if|else|loop|while|for|in|return|break|continue|impl|trait|struct|enum|union|type|use|mod|pub|crate|self|Self|true|false|unsafe|where|move|async|await|dyn|extern|as|super)\b/,
+    builtin: /\b(Vec|String|Option|Result|Box|Rc|Arc|Cell|RefCell|HashMap|HashSet|BTreeMap|BTreeSet|println|print|eprintln|eprint|format|panic|assert|debug_assert|todo|unimplemented|unreachable|Some|None|Ok|Err)\b/,
+    macro: /\b\w+!/,
+    function: /\b([a-zA-Z_]\w*)\s*(?=\()/,
+    operator: /[-+*/%=!&|^<>~?:]/,
+    punctuation: /[{}()\[\],;.]/
+  },
+  go: {
+    comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+    string: /"(?:\\.|[^"\\])*"|`[^`]*`/,
+    number: /\b\d+(?:\.\d+)?\b/,
+    keyword: /\b(package|import|func|return|var|const|type|struct|interface|if|else|switch|case|default|select|for|range|break|continue|fallthrough|go|chan|map|defer|panic|recover|nil|true|false)\b/,
+    builtin: /\b(fmt|os|io|net|http|strings|strconv|math|sort|sync|time|context|errors|log|json|bytes|bufio|regexp|path|filepath|flag|testing|reflect|unsafe)\b/,
+    function: /\b([a-zA-Z_]\w*)\s*(?=\()/,
+    operator: /[-+*/%=!&|^<>~?:]/,
+    punctuation: /[{}()\[\],;.]/
+  },
+  sql: {
+    comment: /--.*|\/\*[\s\S]*?\*\//,
+    string: /'(?:''|[^'])*'/,
+    number: /\b\d+(?:\.\d+)?\b/,
+    keyword: /\b(SELECT|FROM|WHERE|AND|OR|NOT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TABLE|INDEX|JOIN|INNER|LEFT|RIGHT|FULL|OUTER|CROSS|ON|GROUP|BY|HAVING|ORDER|ASC|DESC|LIMIT|OFFSET|UNION|ALL|IN|LIKE|BETWEEN|IS|NULL|TRUE|FALSE|AS|INTO|VALUES|SET|DISTINCT|EXISTS|CASE|WHEN|THEN|ELSE|END|BEGIN|COMMIT|ROLLBACK|GRANT|REVOKE|PRIMARY|KEY|FOREIGN|REFERENCES|CONSTRAINT|DEFAULT|CHECK|UNIQUE|VIEW|TRIGGER|PROCEDURE|FUNCTION|DECLARE|CURSOR|FETCH|OPEN|CLOSE)\b/i,
+    operator: /[-+*/%=!&|^<>~?:|]/,
+    punctuation: /[{}()\[\],;.]/
+  },
+  html: {
+    comment: new RegExp('<' + '\\!--[\\s\\S]*?-->'),
+    string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+    tag: new RegExp('<' + '\\/?(?:[a-zA-Z0-9:-]+)'),
+    attr: /\s+([a-zA-Z0-9:-]+)(?=\s*=)/,
+    operator: /=/,
+    punctuation: /[<>]/
+  },
+  css: {
+    comment: /\/\*[\s\S]*?\*\//,
+    string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+    selector: /[.#a-zA-Z0-9:-]+(?=\s*\{)/,
+    property: /[a-zA-Z-]+(?=\s*:)/,
+    value: /:\s*[^;{}]+;/,
+    number: /\b\d+(?:\.\d+)?(?:px|em|rem|%|vh|vw|vmin|vmax|ch|ex|cm|mm|in|pt|pc|s|ms|deg|rad|grad|turn|Hz|kHz|dpi|dpcm|dppx|fr)?\b/,
+    punctuation: /[{}():;]/
+  },
+  ruby: {
+    comment: /#.*/,
+    string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+    number: /\b\d+(?:\.\d+)?\b/,
+    keyword: /\b(def|end|if|else|elsif|unless|while|until|for|in|break|next|redo|retry|return|class|module|yield|self|true|false|nil|and|or|not|begin|rescue|ensure|raise|do|then|require|require_relative|include|extend|attr_accessor|attr_reader|attr_writer)\b/,
+    builtin: /\b(puts|print|p|pp|gets|chomp|to_s|to_i|to_f|to_a|to_h|each|map|select|reject|reduce|inject|collect|detect|sort|sort_by|flat_map|compact|uniq|first|last|count|length|size|empty|include|freeze|frozen|dup|clone|respond_to|send|method|public_send)\b/,
+    function: /\b([a-zA-Z_]\w*)\s*(?=\()/,
+    operator: /[-+*/%=!&|^<>~?:]/,
+    punctuation: /[{}()\[\],;.]/
+  }
+};
+
+// ─── IntelliSense Database ───────────────────────────────
+const IntelliSenseDb = {
+  javascript: [
+    { name: "let", type: "K", desc: "Declares a block-scoped local variable." },
+    { name: "const", type: "K", desc: "Declares a block-scoped read-only constant." },
+    { name: "var", type: "K", desc: "Declares a function-scoped variable." },
+    { name: "function", type: "K", desc: "Declares a function definition." },
+    { name: "return", type: "K", desc: "Exits the current function and returns a value." },
+    { name: "if", type: "K", desc: "Conditional statement." },
+    { name: "else", type: "K", desc: "Alternative branch in a conditional statement." },
+    { name: "for", type: "K", desc: "For-loop construct." },
+    { name: "while", type: "K", desc: "While-loop construct." },
+    { name: "class", type: "K", desc: "Declares a JavaScript class." },
+    { name: "async", type: "K", desc: "Declares an asynchronous function." },
+    { name: "await", type: "K", desc: "Pauses execution until a Promise resolves." },
+    { name: "try", type: "K", desc: "Begins a try-catch block for error handling." },
+    { name: "catch", type: "K", desc: "Catches exceptions thrown in a try block." },
+    { name: "throw", type: "K", desc: "Throws a user-defined exception." },
+    { name: "import", type: "K", desc: "Imports bindings from other modules." },
+    { name: "export", type: "K", desc: "Exports functions, objects, or primitives from a module." },
+    { name: "console.log", type: "M", desc: "Writes a message to the standard console output." },
+    { name: "console.error", type: "M", desc: "Outputs an error message to the console." },
+    { name: "console.warn", type: "M", desc: "Outputs a warning message to the console." },
+    { name: "document.getElementById", type: "M", desc: "Returns a reference to the element by its ID." },
+    { name: "document.querySelector", type: "M", desc: "Returns the first element matching a CSS selector." },
+    { name: "JSON.parse", type: "M", desc: "Parses a JSON string into a JavaScript object." },
+    { name: "JSON.stringify", type: "M", desc: "Converts a JavaScript value to a JSON string." },
+    { name: "Math.random", type: "M", desc: "Returns a random number between 0 and 1." },
+    { name: "Math.floor", type: "M", desc: "Rounds a number down to the nearest integer." },
+    { name: "Array.isArray", type: "M", desc: "Determines whether the passed value is an Array." },
+    { name: "Object.keys", type: "M", desc: "Returns an array of a given object's property names." },
+    { name: "Promise", type: "C", desc: "Represents the eventual completion of an asynchronous operation." },
+    { name: "Map", type: "C", desc: "Holds key-value pairs and remembers insertion order." },
+    { name: "Set", type: "C", desc: "Stores unique values of any type." },
+    { name: "for-loop", type: "S", body: "for (let ${1:i} = 0; ${1:i} < ${2:array}.length; ${1:i}++) {\n  ${0}\n}", desc: "Standard JavaScript for loop" },
+    { name: "forEach", type: "S", body: "${1:array}.forEach((${2:item}) => {\n  ${0}\n});", desc: "Array forEach iteration" },
+    { name: "arrow-function", type: "S", body: "const ${1:name} = (${2:params}) => {\n  ${0}\n};", desc: "Arrow function expression" },
+    { name: "function-snippet", type: "S", body: "function ${1:name}(${2:params}) {\n  ${0}\n}", desc: "Function declaration block" },
+    { name: "try-catch", type: "S", body: "try {\n  ${0}\n} catch (error) {\n  console.error(error);\n}", desc: "Try-catch error handling block" },
+    { name: "class-snippet", type: "S", body: "class ${1:ClassName} {\n  constructor(${2:params}) {\n    ${0}\n  }\n}", desc: "Class declaration with constructor" },
+    { name: "async-function", type: "S", body: "async function ${1:name}(${2:params}) {\n  ${0}\n}", desc: "Async function declaration" },
+    { name: "iife", type: "S", body: "(() => {\n  ${0}\n})();", desc: "Immediately Invoked Function Expression" }
+  ],
+  gas: [
+    { name: "SpreadsheetApp", type: "K", desc: "Google Sheets service endpoint." },
+    { name: "DocumentApp", type: "K", desc: "Google Docs service endpoint." },
+    { name: "SlidesApp", type: "K", desc: "Google Slides service endpoint." },
+    { name: "DriveApp", type: "K", desc: "Google Drive service endpoint." },
+    { name: "GmailApp", type: "K", desc: "Gmail service endpoint." },
+    { name: "CalendarApp", type: "K", desc: "Google Calendar service endpoint." },
+    { name: "PropertiesService", type: "K", desc: "GAS persistent properties service." },
+    { name: "HtmlService", type: "K", desc: "GAS HTML UI service." },
+    { name: "UrlFetchApp", type: "K", desc: "GAS HTTP fetch service." },
+    { name: "ContentService", type: "K", desc: "GAS content service for web output." },
+    { name: "CacheService", type: "K", desc: "GAS cache service for temporary storage." },
+    { name: "LockService", type: "K", desc: "GAS lock service for concurrent access control." },
+    { name: "ScriptApp", type: "K", desc: "GAS script service for triggers and app info." },
+    { name: "Logger.log", type: "M", desc: "Logs a message to Apps Script execution logs." },
+    { name: "Session.getActiveUser", type: "M", desc: "Returns the current active user." }
+  ],
+  python: [
+    { name: "def", type: "K", desc: "Defines a Python function." },
+    { name: "return", type: "K", desc: "Returns from a function." },
+    { name: "class", type: "K", desc: "Defines a Python class." },
+    { name: "import", type: "K", desc: "Imports modules." },
+    { name: "from", type: "K", desc: "Imports specific items from a module." },
+    { name: "if", type: "K", desc: "Conditional statement." },
+    { name: "elif", type: "K", desc: "Else if conditional branch." },
+    { name: "else", type: "K", desc: "Alternative branch in a conditional." },
+    { name: "for", type: "K", desc: "For loop iteration." },
+    { name: "while", type: "K", desc: "While loop construct." },
+    { name: "try", type: "K", desc: "Begin error handling block." },
+    { name: "except", type: "K", desc: "Catch exceptions." },
+    { name: "with", type: "K", desc: "Context manager statement." },
+    { name: "lambda", type: "K", desc: "Anonymous function expression." },
+    { name: "print", type: "M", desc: "Prints values to standard output." },
+    { name: "input", type: "M", desc: "Reads a string from standard input." },
+    { name: "len", type: "M", desc: "Returns the length of an object." },
+    { name: "range", type: "M", desc: "Returns a sequence of numbers." },
+    { name: "enumerate", type: "M", desc: "Returns index-value pairs." },
+    { name: "zip", type: "M", desc: "Aggregates elements from iterables." },
+    { name: "if-main", type: "S", body: "if __name__ == '__main__':\n  ${0}", desc: "Main entry block" },
+    { name: "for-in", type: "S", body: "for ${1:item} in range(${2:limit}):\n  ${0}", desc: "Range iteration block" },
+    { name: "class-init", type: "S", body: "class ${1:ClassName}:\n  def __init__(self${2:, params}):\n    ${0}", desc: "Class with __init__" },
+    { name: "try-except", type: "S", body: "try:\n  ${0}\nexcept Exception as e:\n  print(e)", desc: "Try-except block" }
+  ],
+  cpp: [
+    { name: "cout", type: "K", desc: "C++ standard character output stream." },
+    { name: "cin", type: "K", desc: "C++ standard character input stream." },
+    { name: "endl", type: "K", desc: "C++ newline stream manipulator." },
+    { name: "main", type: "M", desc: "Program entry point." },
+    { name: "vector", type: "C", desc: "C++ dynamic array container." },
+    { name: "string", type: "C", desc: "C++ string class." },
+    { name: "map", type: "C", desc: "C++ ordered key-value container." },
+    { name: "for-loop", type: "S", body: "for (int ${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {\n  ${0}\n}", desc: "Standard C++ for loop" },
+    { name: "cout-print", type: "S", body: "std::cout << ${1:\"message\"} << std::endl;", desc: "C++ output statement" },
+    { name: "include-iostream", type: "S", body: "#include <iostream>\nusing namespace std;", desc: "Include iostream" }
+  ],
+  java: [
+    { name: "public class", type: "S", body: "public class ${1:Main} {\n  public static void main(String[] args) {\n    ${0}\n  }\n}", desc: "Public Class boilerplate" },
+    { name: "System.out.println", type: "M", desc: "Prints arguments to system console with newline." },
+    { name: "Scanner", type: "C", desc: "Java scanner utility for reading inputs." },
+    { name: "ArrayList", type: "C", desc: "Java resizable array implementation." },
+    { name: "HashMap", type: "C", desc: "Java hash table implementation." },
+    { name: "for-each", type: "S", body: "for (${1:Type} ${2:item} : ${3:collection}) {\n  ${0}\n}", desc: "Enhanced for loop" },
+    { name: "try-catch", type: "S", body: "try {\n  ${0}\n} catch (Exception e) {\n  e.printStackTrace();\n}", desc: "Try-catch block" }
+  ],
+  rust: [
+    { name: "fn", type: "K", desc: "Rust function definition." },
+    { name: "let", type: "K", desc: "Rust variable binding." },
+    { name: "let mut", type: "K", desc: "Rust mutable variable declaration." },
+    { name: "struct", type: "K", desc: "Rust struct definition." },
+    { name: "impl", type: "K", desc: "Rust implementation block." },
+    { name: "enum", type: "K", desc: "Rust enum definition." },
+    { name: "match", type: "K", desc: "Rust pattern matching." },
+    { name: "println!", type: "M", desc: "Prints formatted text to stdout with newline." },
+    { name: "eprintln!", type: "M", desc: "Prints to stderr with newline." },
+    { name: "Vec", type: "C", desc: "Rust growable array type." },
+    { name: "String", type: "C", desc: "Rust heap-allocated string type." },
+    { name: "Option", type: "C", desc: "Rust optional value type." },
+    { name: "Result", type: "C", desc: "Rust error handling type." }
+  ],
+  go: [
+    { name: "func", type: "K", desc: "Go function keyword." },
+    { name: "package", type: "K", desc: "Go package declaration." },
+    { name: "import", type: "K", desc: "Go import declaration." },
+    { name: "struct", type: "K", desc: "Go struct type." },
+    { name: "interface", type: "K", desc: "Go interface type." },
+    { name: "goroutine", type: "K", desc: "Go concurrent execution." },
+    { name: "fmt.Println", type: "M", desc: "Go console printer." },
+    { name: "fmt.Printf", type: "M", desc: "Go formatted printer." },
+    { name: "fmt.Sprintf", type: "M", desc: "Go format to string." }
+  ],
+  sql: [
+    { name: "SELECT", type: "K", desc: "Retrieves rows from a table." },
+    { name: "FROM", type: "K", desc: "Specifies the table to query." },
+    { name: "WHERE", type: "K", desc: "Filters rows based on conditions." },
+    { name: "INSERT INTO", type: "S", body: "INSERT INTO ${1:table} (${2:columns}) VALUES (${3:values});", desc: "Insert row snippet" },
+    { name: "CREATE TABLE", type: "S", body: "CREATE TABLE ${1:table_name} (\n  ${2:id} INT PRIMARY KEY,\n  ${0}\n);", desc: "Create table snippet" },
+    { name: "SELECT-FROM-WHERE", type: "S", body: "SELECT ${1:*}\nFROM ${2:table}\nWHERE ${3:condition};", desc: "Basic SELECT query" }
+  ],
+  html: [
+    { name: "div", type: "S", body: "<div>\n  ${0}\n</div>", desc: "HTML div tag" },
+    { name: "a", type: "S", body: "<a href=\"${1:#}\">${2:link}</a>", desc: "HTML anchor tag" },
+    { name: "img", type: "S", body: "<img src=\"${1:url}\" alt=\"${2:description}\" />", desc: "HTML image tag" },
+    { name: "html5", type: "S", body: "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>${1:Document}</title>\n</head>\n<body>\n  ${0}\n</body>\n</html>", desc: "HTML5 boilerplate" },
+    { name: "script", type: "S", body: "<script>\\n  ${0}\\n<\\/script>", desc: "Script tag" },
+    { name: "style", type: "S", body: "<style>\n  ${0}\n</style>", desc: "Style tag" }
+  ],
+  css: [
+    { name: "color", type: "K", desc: "Sets text color." },
+    { name: "background-color", type: "K", desc: "Sets background color." },
+    { name: "display", type: "K", desc: "Sets display type." },
+    { name: "margin", type: "K", desc: "Sets outer spacing." },
+    { name: "padding", type: "K", desc: "Sets inner spacing." },
+    { name: "display: flex", type: "S", body: "display: flex;\njustify-content: ${1:center};\nalign-items: ${2:center};", desc: "CSS Flexbox block" },
+    { name: "display: grid", type: "S", body: "display: grid;\ngrid-template-columns: ${1:1fr 1fr};\ngap: ${2:16px};", desc: "CSS Grid block" },
+    { name: "media-query", type: "S", body: "@media (max-width: ${1:768px}) {\n  ${0}\n}", desc: "Responsive media query" }
+  ],
+  ruby: [
+    { name: "def", type: "K", desc: "Defines Ruby method." },
+    { name: "class", type: "K", desc: "Defines Ruby class." },
+    { name: "module", type: "K", desc: "Defines Ruby module." },
+    { name: "puts", type: "M", desc: "Prints string to output with newline." },
+    { name: "print", type: "M", desc: "Prints string to output." },
+    { name: "gets", type: "M", desc: "Reads user input." },
+    { name: "each", type: "M", desc: "Iterates over collection." }
+  ]
+};
+
+// ─── State Management ────────────────────────────────────
+let vfsCache = {};
+let openFiles = [];
+let activeFile = null;
+let activeLanguage = 'javascript';
+let dirtyFiles = {};
+let tabSize = 2;
+
+// Linter & Problems State
+let lintProblems = {};
+let runtimeProblems = {};
+let activeFileProblems = {};
+
+// Execution
+let executionInputBuffer = [];
+let executionActive = false;
+
+// UI State
+let sidebarVisible = true;
+let bottomPanelVisible = true;
+let minimapEnabled = true;
+let isPanelMaximized = false;
+
+// ─── DOM Elements ────────────────────────────────────────
+const codeInput = document.getElementById('code-input');
+const codeHighlighted = document.getElementById('code-highlighted');
+const codeContentLayer = document.getElementById('code-content-layer');
+const lineNumbers = document.getElementById('line-numbers');
+const terminalOutput = document.getElementById('terminal-output');
+const runBtn = document.getElementById('run-btn');
+const sidebar = document.getElementById('sidebar');
+const fileListContainer = document.getElementById('file-list');
+const tabsBar = document.getElementById('tabs-bar');
+const previewPane = document.getElementById('preview-pane');
+const previewIframe = document.getElementById('preview-iframe');
+const suggestionsMenu = document.getElementById('suggestions-menu');
+const suggestionsList = document.getElementById('suggestions-list');
+const suggestionsDoc = document.getElementById('suggestions-doc');
+
+let suggestionsVisible = false;
+let activeSuggestions = [];
+let selectedSuggestionIdx = 0;
+
+// ─── File Icons (SVG) ────────────────────────────────────
+function getFileIconSVG(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  const icons = {
+    js: `<svg width="16" height="16" viewBox="0 0 16 16" fill="#f1e05a" style="flex-shrink:0"><rect width="16" height="16" rx="2"/><text x="2.5" y="11.5" fill="#000" font-size="8" font-family="monospace" font-weight="700">JS</text></svg>`,
+    gs: `<svg width="16" height="16" viewBox="0 0 16 16" fill="#4285f4" style="flex-shrink:0"><rect width="16" height="16" rx="2"/><text x="1.5" y="11.5" fill="#fff" font-size="7" font-family="monospace" font-weight="700">GS</text></svg>`,
+    py: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#3572a5"/><text x="2" y="11.5" fill="#fff" font-size="7.5" font-family="monospace" font-weight="700">PY</text></svg>`,
+    cpp: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#f34b7d"/><text x="0.5" y="11.5" fill="#fff" font-size="6.5" font-family="sans-serif" font-weight="700">C++</text></svg>`,
+    h: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#f34b7d"/><text x="4.5" y="11.5" fill="#fff" font-size="8" font-family="sans-serif" font-weight="700">H</text></svg>`,
+    java: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#b07219"/><text x="1.5" y="11.5" fill="#fff" font-size="7" font-family="sans-serif" font-weight="700">JV</text></svg>`,
+    rs: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#dea584"/><text x="1.5" y="11.5" fill="#000" font-size="7" font-family="monospace" font-weight="700">RS</text></svg>`,
+    go: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#00add8"/><text x="1.5" y="11.5" fill="#fff" font-size="7.5" font-family="monospace" font-weight="700">GO</text></svg>`,
+    html: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none" stroke="#e34c26" stroke-width="1.5"><polyline points="10 12 14 8 10 4"/><polyline points="6 4 2 8 6 12"/></svg>`,
+    css: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none" stroke="#563d7c" stroke-width="1.5"><line x1="3" y1="6" x2="13" y2="6"/><line x1="3" y1="10" x2="13" y2="10"/><line x1="7" y1="2" x2="5" y2="14"/><line x1="11" y1="2" x2="9" y2="14"/></svg>`,
+    sql: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#e38c00"/><text x="0.5" y="11" fill="#fff" font-size="6.5" font-family="sans-serif" font-weight="700">SQL</text></svg>`,
+    rb: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#701516"/><text x="1.5" y="11.5" fill="#fff" font-size="7" font-family="sans-serif" font-weight="700">RB</text></svg>`,
+    json: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#292929"/><text x="2" y="11" fill="#f1e05a" font-size="6" font-family="monospace" font-weight="700">{}</text></svg>`,
+    md: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none"><rect width="16" height="16" rx="2" fill="#083fa1"/><text x="0.5" y="11.5" fill="#fff" font-size="6" font-family="sans-serif" font-weight="700">MD</text></svg>`,
+    txt: `<svg width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0" fill="none" stroke="#858585" stroke-width="1.5"><path d="M10 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4z"/><polyline points="10 1 10 4 13 4"/></svg>`
+  };
+  return icons[ext] || icons['txt'];
+}
+
+// ─── Scroll Sync ─────────────────────────────────────────
+codeInput.addEventListener('scroll', () => {
+  codeHighlighted.scrollTop = codeInput.scrollTop;
+  codeHighlighted.scrollLeft = codeInput.scrollLeft;
+  lineNumbers.scrollTop = codeInput.scrollTop;
+});
+
+// ─── Input Handling ──────────────────────────────────────
+let lintTimeout = null;
+codeInput.addEventListener('input', () => {
+  if (!activeFile) return;
+  vfsCache[activeFile].content = codeInput.value;
+  dirtyFiles[activeFile] = true;
+  updateTabUI();
+  updateLineNumbers();
+  highlightCode();
+  updateCursorPos();
+  triggerIntelliSense();
+  syncLivePreview();
+  updateTitleFilename();
+
+  clearTimeout(lintTimeout);
+  lintTimeout = setTimeout(() => { runLinter(); }, 400);
+});
+
+codeInput.addEventListener('mouseup', () => {
+  updateCursorPos();
+  hideSuggestions();
+});
+
+codeInput.addEventListener('keyup', (e) => {
+  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+    updateCursorPos();
+    hideSuggestions();
+  }
+});
+
+// ─── Keyboard Shortcuts ──────────────────────────────────
+codeInput.addEventListener('keydown', (e) => {
+  // IntelliSense navigation
+  if (e.key === 'Escape' && suggestionsVisible) {
+    e.preventDefault();
+    hideSuggestions();
+    return;
+  }
+  if (suggestionsVisible && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    e.preventDefault();
+    if (e.key === 'ArrowDown') {
+      selectedSuggestionIdx = (selectedSuggestionIdx + 1) % activeSuggestions.length;
+    } else {
+      selectedSuggestionIdx = (selectedSuggestionIdx - 1 + activeSuggestions.length) % activeSuggestions.length;
+    }
+    updateActiveSuggestionSelection();
+    return;
+  }
+  if (suggestionsVisible && (e.key === 'Enter' || e.key === 'Tab')) {
+    e.preventDefault();
+    insertSelectedSuggestion();
+    return;
+  }
+
+  // Tab indentation
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = codeInput.selectionStart;
+    const end = codeInput.selectionEnd;
+    const indent = ' '.repeat(tabSize);
+    if (start !== end) {
+      // Multi-line indent/dedent
+      const text = codeInput.value;
+      const beforeSel = text.substring(0, start);
+      const selection = text.substring(start, end);
+      const afterSel = text.substring(end);
+      const lineStart = beforeSel.lastIndexOf('\n') + 1;
+      const prefix = text.substring(0, lineStart);
+      const block = text.substring(lineStart, end);
+      const lines = block.split('\n');
+      let modified;
+      if (e.shiftKey) {
+        modified = lines.map(l => l.startsWith(indent) ? l.substring(tabSize) : (l.startsWith(' ') ? l.replace(/^ +/, m => m.substring(0, Math.max(0, m.length - tabSize))) : l));
+      } else {
+        modified = lines.map(l => indent + l);
+      }
+      codeInput.value = prefix + modified.join('\n') + afterSel;
+      codeInput.selectionStart = lineStart;
+      codeInput.selectionEnd = lineStart + modified.join('\n').length;
+    } else {
+      codeInput.value = codeInput.value.substring(0, start) + indent + codeInput.value.substring(end);
+      codeInput.selectionStart = codeInput.selectionEnd = start + tabSize;
+    }
+    if (activeFile) { vfsCache[activeFile].content = codeInput.value; dirtyFiles[activeFile] = true; }
+    updateLineNumbers();
+    highlightCode();
+    updateCursorPos();
+    return;
+  }
+
+  // Smart Enter
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const cursor = codeInput.selectionStart;
+    const text = codeInput.value;
+    const before = text.substring(0, cursor);
+    const after = text.substring(cursor);
+    const lines = before.split('\n');
+    const currentLine = lines[lines.length - 1];
+    const indentMatch = currentLine.match(/^\s*/);
+    let indent = indentMatch ? indentMatch[0] : "";
+    const trimmed = currentLine.trim();
+    let extraIndent = "";
+    if (trimmed.endsWith('{') || trimmed.endsWith(':') || trimmed.endsWith('(') || trimmed.endsWith('[')) {
+      extraIndent = ' '.repeat(tabSize);
+    }
+    // Auto-close brackets
+    let closingText = "";
+    if (trimmed.endsWith('{') && after.trim().startsWith('}')) {
+      // Already has closing bracket
+    } else if (trimmed.endsWith('{')) {
+      closingText = "\n" + indent + "}";
+    }
+    const insertText = "\n" + indent + extraIndent;
+    codeInput.value = before + insertText + after;
+    codeInput.selectionStart = codeInput.selectionEnd = cursor + insertText.length;
+    if (activeFile) { vfsCache[activeFile].content = codeInput.value; dirtyFiles[activeFile] = true; }
+    updateLineNumbers();
+    highlightCode();
+    updateCursorPos();
+    updateTabUI();
+    return;
+  }
+
+  // Ctrl+S Save
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    saveActiveFile();
+  }
+  // Ctrl+Enter Run
+  if (e.ctrlKey && e.key === 'Enter') {
+    e.preventDefault();
+    runCode();
+  }
+});
+
+// ─── Global Keyboard Shortcuts ───────────────────────────
+document.addEventListener('keydown', (e) => {
+  // Ctrl+Shift+P: Command Palette
+  if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+    e.preventDefault();
+    openCommandPalette();
+    return;
+  }
+  // Ctrl+P: Quick Open (same as command palette for now)
+  if (e.ctrlKey && !e.shiftKey && e.key === 'p') {
+    e.preventDefault();
+    openQuickOpen();
+    return;
+  }
+  // Ctrl+B: Toggle Sidebar
+  if (e.ctrlKey && e.key === 'b') {
+    e.preventDefault();
+    toggleSidebar();
+    return;
+  }
+  // Ctrl+J: Toggle Panel
+  if (e.ctrlKey && e.key === 'j') {
+    e.preventDefault();
+    toggleBottomPanel();
+    return;
+  }
+  // Ctrl+Shift+E: Explorer
+  if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+    e.preventDefault();
+    showSidebarPanel('explorer');
+    return;
+  }
+  // Ctrl+Shift+F: Search
+  if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+    e.preventDefault();
+    showSidebarPanel('search');
+    document.getElementById('search-query-input').focus();
+    return;
+  }
+  // Ctrl+Shift+D: Debug
+  if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+    e.preventDefault();
+    showSidebarPanel('debug');
+    return;
+  }
+  // Ctrl+Shift+X: Extensions
+  if (e.ctrlKey && e.shiftKey && e.key === 'X') {
+    e.preventDefault();
+    showSidebarPanel('extensions');
+    return;
+  }
+  // Ctrl+N: New File
+  if (e.ctrlKey && e.key === 'n') {
+    e.preventDefault();
+    openNewFileModal();
+    return;
+  }
+  // Ctrl+W: Close Tab
+  if (e.ctrlKey && e.key === 'w') {
+    e.preventDefault();
+    if (activeFile) closeTab(activeFile);
+    return;
+  }
+  // Escape: Close overlays
+  if (e.key === 'Escape') {
+    closeCommandPalette();
+    closeNewFileModal();
+    hideAllContextMenus();
+    hideSuggestions();
+  }
+  // F5: Run
+  if (e.key === 'F5') {
+    e.preventDefault();
+    runCode();
+  }
+});
+
+// ─── Cursor Position ─────────────────────────────────────
+function updateCursorPos() {
+  const textBefore = codeInput.value.substring(0, codeInput.selectionStart);
+  const lines = textBefore.split('\n');
+  const ln = lines.length;
+  const col = lines[lines.length - 1].length + 1;
+  const cursorEl = document.getElementById('status-cursor');
+  if (cursorEl) cursorEl.innerText = `Ln ${ln}, Col ${col}`;
+  const langEl = document.getElementById('status-language');
+  if (langEl) langEl.innerText = getLangDisplay(activeLanguage);
+  const indentEl = document.getElementById('status-indent');
+  if (indentEl) indentEl.innerText = `Spaces: ${tabSize}`;
+}
+
+function getLangDisplay(lang) {
+  const map = {
+    javascript: 'JavaScript', gas: 'Google Apps Script', python: 'Python',
+    cpp: 'C++', java: 'Java', rust: 'Rust', go: 'Go', ruby: 'Ruby',
+    sql: 'SQL', html: 'HTML', css: 'CSS'
+  };
+  return map[lang] || lang;
+}
+
+// ─── Line Numbers ────────────────────────────────────────
+function updateLineNumbers() {
+  if (!activeFile) return;
+  const count = codeInput.value.split('\n').length;
+  lineNumbers.innerHTML = "";
+  const fileProbs = activeFileProblems[activeFile] || [];
+  for (let i = 1; i <= count; i++) {
+    const div = document.createElement('div');
+    div.className = 'line-num-item';
+    div.innerText = i;
+    const prob = fileProbs.find(p => p.line === i);
+    if (prob) {
+      div.classList.add(prob.severity === 'error' ? 'gutter-error' : 'gutter-warning');
+      div.title = prob.message;
+    }
+    lineNumbers.appendChild(div);
+  }
+}
+
+// ─── Sidebar Panel Switching ─────────────────────────────
+function showSidebarPanel(panelName) {
+  const panels = ['explorer', 'search', 'scm', 'debug', 'extensions', 'settings'];
+  document.querySelectorAll('.activity-icon').forEach(icon => icon.classList.remove('active'));
+  const currentPanel = document.querySelector('.sidebar-panel:not([style*="display: none"])');
+  const currentName = currentPanel ? currentPanel.id.replace('-panel', '') : null;
+
+  if (sidebar.style.display !== 'none' && currentName === panelName) {
+    sidebar.style.display = 'none';
+    sidebarVisible = false;
+    return;
+  }
+
+  sidebar.style.display = 'flex';
+  sidebarVisible = true;
+  panels.forEach(p => {
+    const panel = document.getElementById(`${p}-panel`);
+    if (panel) {
+      if (p === panelName) {
+        panel.style.display = 'flex';
+        const icon = document.getElementById(`icon-${p}`);
+        if (icon) icon.classList.add('active');
+      } else {
+        panel.style.display = 'none';
+      }
+    }
+  });
+}
+
+function toggleSidebar() {
+  if (sidebarVisible) {
+    sidebar.style.display = 'none';
+    sidebarVisible = false;
+    document.querySelectorAll('.activity-icon').forEach(i => i.classList.remove('active'));
+  } else {
+    sidebar.style.display = 'flex';
+    sidebarVisible = true;
+    showSidebarPanel('explorer');
+  }
+}
+
+function toggleSidebarSection(header) {
+  // Collapse/expand sidebar sections
+  const content = header.nextElementSibling;
+  if (content) {
+    content.style.display = content.style.display === 'none' ? '' : 'none';
+    const chevron = header.querySelector('span');
+    if (chevron) {
+      chevron.textContent = content.style.display === 'none' 
+        ? '\u25b6 ' + chevron.textContent.substring(2) 
+        : '\u25bc ' + chevron.textContent.substring(2);
+    }
+  }
+}
+
+function collapseAllFiles() {
+  // Placeholder for file tree collapse
+}
+
+function togglePreviewPane(visible) {
+  previewPane.style.display = visible ? 'flex' : 'none';
+}
+
+// ─── Syntax Highlighting Engine ──────────────────────────
+function getTokens(text, lang) {
+  const rules = tokenizerRules[lang] || tokenizerRules['javascript'];
+  const matches = [];
+  for (let [type, regex] of Object.entries(rules)) {
+    let r = new RegExp(regex.source, regex.flags.includes('g') ? regex.flags : regex.flags + 'g');
+    let m;
+    while ((m = r.exec(text)) !== null) {
+      matches.push({ start: m.index, end: r.lastIndex, type: type, text: m[0] });
+      if (m.index === r.lastIndex) r.lastIndex++;
+    }
+  }
+  matches.sort((a, b) => a.start !== b.start ? a.start - b.start : (b.end - b.start) - (a.end - a.start));
+  const kept = [];
+  let lastEnd = 0;
+  for (let match of matches) {
+    if (match.start >= lastEnd) {
+      kept.push(match);
+      lastEnd = match.end;
+    }
+  }
+  return kept;
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+function highlightCode(markerIndex = -1) {
+  const text = codeInput.value;
+  const tokens = getTokens(text, activeLanguage);
+  let html = "";
+  let currentIndex = 0;
+
+  function appendText(start, end) {
+    let sub = text.substring(start, end);
+    if (markerIndex >= start && markerIndex <= end) {
+      let relIdx = markerIndex - start;
+      return escapeHtml(sub.substring(0, relIdx)) + '<span id="intellisense-marker"></span>' + escapeHtml(sub.substring(relIdx));
+    }
+    return escapeHtml(sub);
+  }
+
+  for (let token of tokens) {
+    if (token.start > currentIndex) html += appendText(currentIndex, token.start);
+    if (markerIndex >= token.start && markerIndex <= token.end) {
+      let relStart = markerIndex - token.start;
+      html += `<span class="token-${token.type}">${escapeHtml(token.text.substring(0, relStart))}<span id="intellisense-marker"></span>${escapeHtml(token.text.substring(relStart))}</span>`;
+    } else {
+      html += `<span class="token-${token.type}">${escapeHtml(token.text)}</span>`;
+    }
+    currentIndex = token.end;
+  }
+  if (currentIndex < text.length) html += appendText(currentIndex, text.length);
+  if (markerIndex === text.length) html += '<span id="intellisense-marker"></span>';
+
+  // Wrap lines with problem indicators
+  const lines = html.split('\n');
+  let finalHtml = "";
+  const fileProbs = activeFile ? (activeFileProblems[activeFile] || []) : [];
+  lines.forEach((lineHtml, index) => {
+    const lineNum = index + 1;
+    const prob = fileProbs.find(p => p.line === lineNum);
+    let className = "editor-line-normal";
+    if (prob) className = prob.severity === 'error' ? "editor-line-error" : "editor-line-warning";
+    finalHtml += `<div class="${className}">${lineHtml || " "}</div>`;
+  });
+  codeContentLayer.innerHTML = finalHtml;
+}
+
+function syncLivePreview() {
+  if (activeLanguage === 'html') {
+    togglePreviewPane(true);
+    previewIframe.srcdoc = codeInput.value;
+  } else {
+    togglePreviewPane(false);
+  }
+}
+
+// ─── IntelliSense ────────────────────────────────────────
+function fuzzyMatch(str, pattern) {
+  pattern = pattern.toLowerCase();
+  str = str.toLowerCase();
+  let pIdx = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === pattern[pIdx]) { pIdx++; if (pIdx === pattern.length) return true; }
+  }
+  return false;
+}
+
+function scanLocalSymbols(text) {
+  const symbols = [];
+  const seen = new Set();
+  const regexes = [
+    /\b(?:function|fn|def|let|const|var|int|double|float|char|bool|class)\s+([a-zA-Z_]\w*)\b/g,
+    /\b([a-zA-Z_]\w*)\s*=\s*(?![=])/g
+  ];
+  const dbKeywords = (IntelliSenseDb[activeLanguage] || []).map(x => x.name);
+  for (let regex of regexes) {
+    let r = new RegExp(regex.source, 'g');
+    let match;
+    while ((match = r.exec(text)) !== null) {
+      const name = match[1];
+      if (name && !seen.has(name) && name.length > 1 && !dbKeywords.includes(name)) {
+        seen.add(name);
+        symbols.push({ name, type: "V", desc: `Local symbol: "${name}"` });
+      }
+    }
+  }
+  return symbols;
+}
+
+function triggerIntelliSense() {
+  const textBefore = codeInput.value.substring(0, codeInput.selectionStart);
+  const lastWordMatch = textBefore.match(/[a-zA-Z_0-9.:-]+$/);
+  const prefix = lastWordMatch ? lastWordMatch[0] : "";
+  if (prefix.length < 1) { hideSuggestions(); return; }
+
+  const langDb = IntelliSenseDb[activeLanguage] || [];
+  const locals = scanLocalSymbols(codeInput.value);
+  const fullList = [...langDb, ...locals];
+  const matches = fullList.filter(item => fuzzyMatch(item.name, prefix));
+  matches.sort((a, b) => {
+    const aS = a.name.toLowerCase().startsWith(prefix.toLowerCase());
+    const bS = b.name.toLowerCase().startsWith(prefix.toLowerCase());
+    if (aS && !bS) return -1;
+    if (!aS && bS) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  activeSuggestions = matches.slice(0, 15);
+  if (activeSuggestions.length > 0) {
+    selectedSuggestionIdx = 0;
+    renderSuggestionsMenu();
+    positionSuggestionsMenu();
+  } else {
+    hideSuggestions();
+  }
+}
+
+function hideSuggestions() {
+  suggestionsMenu.style.display = 'none';
+  suggestionsVisible = false;
+}
+
+function renderSuggestionsMenu() {
+  suggestionsList.innerHTML = "";
+  activeSuggestions.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = `suggestion-item ${idx === selectedSuggestionIdx ? 'selected' : ''}`;
+    const iconLabel = item.type || 'K';
+    div.innerHTML = `<div class="suggestion-content"><span class="suggestion-icon icon-${iconLabel}">${iconLabel}</span><span>${escapeHtml(item.name)}</span></div>`;
+    div.addEventListener('click', () => { selectedSuggestionIdx = idx; insertSelectedSuggestion(); });
+    suggestionsList.appendChild(div);
+  });
+  const activeItem = activeSuggestions[selectedSuggestionIdx];
+  suggestionsDoc.innerText = activeItem ? activeItem.desc : "";
+  suggestionsVisible = true;
+}
+
+function updateActiveSuggestionSelection() {
+  const items = suggestionsList.querySelectorAll('.suggestion-item');
+  items.forEach((div, idx) => {
+    div.classList.toggle('selected', idx === selectedSuggestionIdx);
+    if (idx === selectedSuggestionIdx) div.scrollIntoView({ block: 'nearest' });
+  });
+  const activeItem = activeSuggestions[selectedSuggestionIdx];
+  suggestionsDoc.innerText = activeItem ? activeItem.desc : "";
+}
+
+function positionSuggestionsMenu() {
+  const selectionStart = codeInput.selectionStart;
+  highlightCode(selectionStart);
+  const marker = document.getElementById('intellisense-marker');
+  if (marker) {
+    const rect = marker.getBoundingClientRect();
+    const wrapperRect = document.querySelector('.editor-wrapper').getBoundingClientRect();
+    let top = rect.bottom - wrapperRect.top + 2;
+    let left = rect.left - wrapperRect.left;
+    if (left + 480 > window.innerWidth) left = window.innerWidth - 500;
+    if (top + 250 > window.innerHeight) top = rect.top - wrapperRect.top - 255;
+    suggestionsMenu.style.top = `${top}px`;
+    suggestionsMenu.style.left = `${left}px`;
+    suggestionsMenu.style.display = 'flex';
+  }
+}
+
+function insertSelectedSuggestion() {
+  const item = activeSuggestions[selectedSuggestionIdx];
+  if (!item) return;
+  const textBefore = codeInput.value.substring(0, codeInput.selectionStart);
+  const lastWordMatch = textBefore.match(/[a-zA-Z_0-9.:-]+$/);
+  const prefix = lastWordMatch ? lastWordMatch[0] : "";
+  const start = codeInput.selectionStart - prefix.length;
+  const end = codeInput.selectionStart;
+  let insertText = item.name;
+  if (item.type === 'S' && item.body) {
+    insertText = expandSnippet(item.body).text;
+  }
+  codeInput.value = codeInput.value.substring(0, start) + insertText + codeInput.value.substring(end);
+  codeInput.selectionStart = codeInput.selectionEnd = start + insertText.length;
+  if (activeFile) { vfsCache[activeFile].content = codeInput.value; dirtyFiles[activeFile] = true; }
+  updateTabUI();
+  updateLineNumbers();
+  highlightCode();
+  updateCursorPos();
+  hideSuggestions();
+  syncLivePreview();
+  codeInput.focus();
+}
+
+function expandSnippet(body) {
+  let text = body.replace(/\$\{\d+:?([^}]*)\}/g, '$1').replace(/\$\d/g, '');
+  return { text };
+}
+
+// ─── Theme & Settings ────────────────────────────────────
+function changeTheme(themeName) {
+  const t = themes[themeName] || themes.darkplus;
+  const root = document.documentElement;
+  root.style.setProperty('--bg-activity', t.activity);
+  root.style.setProperty('--bg-side', t.side);
+  root.style.setProperty('--bg-main', t.main);
+  root.style.setProperty('--bg-tabs', t.tabs);
+  root.style.setProperty('--bg-terminal', t.terminal);
+  root.style.setProperty('--text-main', t.text);
+  root.style.setProperty('--text-dark', t.textDark);
+  root.style.setProperty('--accent', t.accent);
+  root.style.setProperty('--border', t.border);
+  root.style.setProperty('--tab-inactive', t.tabInactive);
+  root.style.setProperty('--tab-active', t.tabActive);
+  root.style.setProperty('--bg-titlebar', t.titlebar);
+  root.style.setProperty('--bg-input', t.input);
+  root.style.setProperty('--hover-bg', t.hover);
+  root.style.setProperty('--selected-bg', t.selected);
+  document.getElementById('settings-theme-select').value = themeName;
+}
+
+function changeFontSize(size) {
+  document.documentElement.style.setProperty('--font-size', size + 'px');
+  document.documentElement.style.setProperty('--line-height', Math.round(size * 1.45) + 'px');
+  document.getElementById('settings-font-select').value = size;
+}
+
+function changeTabSize(size) {
+  tabSize = size;
+  document.getElementById('settings-tabsize-select').value = size;
+  const indentEl = document.getElementById('status-indent');
+  if (indentEl) indentEl.innerText = `Spaces: ${size}`;
+}
+
+function toggleWordWrap(wrap) {
+  const val = wrap ? 'pre-wrap' : 'pre';
+  codeInput.style.whiteSpace = val;
+  codeHighlighted.style.whiteSpace = val;
+  codeInput.style.wordBreak = wrap ? 'break-all' : 'normal';
+  codeHighlighted.style.wordBreak = wrap ? 'break-all' : 'normal';
+  document.getElementById('settings-wrap-toggle').checked = wrap;
+}
+
+function toggleMinimap(show) {
+  minimapEnabled = show;
+  document.getElementById('settings-minimap-toggle').checked = show;
+}
+
+// ─── Language Detection ──────────────────────────────────
+function detectLanguage(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  const map = {
+    js: 'javascript', gs: 'gas', py: 'python', cpp: 'cpp', h: 'cpp',
+    java: 'java', rs: 'rust', go: 'go', rb: 'ruby', sql: 'sql',
+    html: 'html', css: 'css', json: 'javascript', md: 'html', txt: 'javascript'
+  };
+  return map[ext] || 'javascript';
+}
+
+// ─── File Operations ─────────────────────────────────────
+function openNewFileModal() {
+  const modal = document.getElementById('new-file-modal');
+  const input = document.getElementById('new-file-input');
+  const err = document.getElementById('new-file-error');
+  input.value = "";
+  if (err) err.style.display = "none";
+  modal.style.display = "flex";
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeNewFileModal() {
+  document.getElementById('new-file-modal').style.display = "none";
+}
+
+function submitNewFile() {
+  const input = document.getElementById('new-file-input');
+  const err = document.getElementById('new-file-error');
+  const filename = input.value.trim();
+  if (!filename || filename.includes('/') || filename.includes('\\')) {
+    if (err) { err.innerText = "Please enter a valid filename."; err.style.display = "block"; }
+    return;
+  }
+  if (vfsCache[filename]) {
+    if (err) { err.innerText = "File already exists."; err.style.display = "block"; }
+    return;
+  }
+  const lang = detectLanguage(filename);
+  let content = "";
+  if (lang === 'python') content = "# Python File\nprint('Hello World')\n";
+  else if (lang === 'cpp') content = '#include <iostream>\nusing namespace std;\n\nint main() {\n  cout << "Hello World" << endl;\n  return 0;\n}\n';
+  else if (lang === 'html') content = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>New Page</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>\n';
+  else if (lang === 'java') content = 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello World");\n  }\n}\n';
+  else content = `// ${filename}\n`;
+
+  google.script.run
+    .withSuccessHandler(() => {
+      vfsCache[filename] = { content, language: lang };
+      closeNewFileModal();
+      renderFileList();
+      loadFileContent(filename);
+      showNotification(`Created ${filename}`);
+    })
+    .withFailureHandler((errObj) => {
+      if (err) { err.innerText = "Error: " + errObj.message; err.style.display = "block"; }
+    })
+    .vfsWriteFile(filename, content, lang);
+}
+
+// Modal key events
+document.getElementById('new-file-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); submitNewFile(); }
+  if (e.key === 'Escape') { e.preventDefault(); closeNewFileModal(); }
+});
+
+function loadFileContent(filename) {
+  if (activeFile && vfsCache[activeFile]) {
+    vfsCache[activeFile].content = codeInput.value;
+  }
+  activeFile = filename;
+  activeLanguage = detectLanguage(filename);
+
+  const breadcrumb = document.getElementById('breadcrumb-filename');
+  if (breadcrumb) {
+    breadcrumb.innerHTML = filename ? `${getFileIconSVG(filename)} <span style="margin-left:4px">${filename}</span>` : '<span>none</span>';
+  }
+  updateTitleFilename();
+
+  const fileData = vfsCache[filename] || { content: "", language: activeLanguage };
+  codeInput.value = fileData.content;
+
+  runLinter();
+  updateCursorPos();
+  syncLivePreview();
+
+  if (!openFiles.includes(filename)) openFiles.push(filename);
+  updateTabUI();
+  updateFileListActive();
+}
+
+function updateTitleFilename() {
+  const titleEl = document.getElementById('title-filename');
+  if (titleEl) {
+    const dirty = activeFile && dirtyFiles[activeFile] ? '● ' : '';
+    titleEl.innerText = activeFile ? `${dirty}${activeFile} - GAS Cloud IDE` : 'GAS Cloud IDE';
+  }
+}
+
+function saveActiveFile() {
+  if (!activeFile) return;
+  const content = codeInput.value;
+  vfsCache[activeFile].content = content;
+  showNotification(`Saving ${activeFile}...`, 'info');
+
+  google.script.run
+    .withSuccessHandler(() => {
+      dirtyFiles[activeFile] = false;
+      updateTabUI();
+      updateTitleFilename();
+      showNotification(`${activeFile} saved`, 'success');
+    })
+    .withFailureHandler((err) => {
+      showNotification(`Save failed: ${err.message}`, 'error');
+    })
+    .vfsWriteFile(activeFile, content, activeLanguage);
+}
+
+function deleteFile(filename, event) {
+  if (event) event.stopPropagation();
+  if (!confirm(`Delete "${filename}"?`)) return;
+
+  google.script.run
+    .withSuccessHandler(() => {
+      openFiles = openFiles.filter(f => f !== filename);
+      delete dirtyFiles[filename];
+      delete vfsCache[filename];
+      if (activeFile === filename) {
+        activeFile = openFiles.length > 0 ? openFiles[0] : Object.keys(vfsCache)[0] || null;
+        if (activeFile) loadFileContent(activeFile);
+        else {
+          codeInput.value = "";
+          activeLanguage = 'javascript';
+          updateLineNumbers();
+          highlightCode();
+          updateCursorPos();
+          syncLivePreview();
+          document.getElementById('breadcrumb-filename').innerHTML = '<span>none</span>';
+          updateTitleFilename();
+        }
+      }
+      renderFileList();
+      updateTabUI();
+      showNotification(`Deleted ${filename}`);
+    })
+    .withFailureHandler((err) => {
+      showNotification(`Delete failed: ${err.message}`, 'error');
+    })
+    .vfsDeleteFile(filename);
+}
+
+function initVFSCache() {
+  const statusErrors = document.getElementById('status-errors');
+  google.script.run
+    .withSuccessHandler((filesData) => {
+      vfsCache = filesData;
+      renderFileList();
+      const keys = Object.keys(vfsCache);
+      if (keys.length > 0) loadFileContent(keys[0]);
+    })
+    .withFailureHandler((err) => {
+      console.error("VFS Loading Failure:", err.message);
+      showNotification("VFS Init Failed: " + err.message, 'error');
+    })
+    .vfsGetAllFiles();
+}
+
+function renderFileList() {
+  const searchVal = document.getElementById('file-search-input').value.toLowerCase();
+  fileListContainer.innerHTML = "";
+  Object.keys(vfsCache).forEach(filename => {
+    if (searchVal && !filename.toLowerCase().includes(searchVal)) return;
+    const div = document.createElement('div');
+    div.className = `file-item ${filename === activeFile ? 'active' : ''}`;
+    div.setAttribute('data-filename', filename);
+    div.addEventListener('click', () => loadFileContent(filename));
+    div.innerHTML = `
+      <div class="file-name-container">
+        ${getFileIconSVG(filename)}
+        <span>${filename}</span>
+      </div>
+      <button class="file-delete-btn" onclick="deleteFile('${filename}', event)" title="Delete">\u2715</button>
+    `;
+    fileListContainer.appendChild(div);
+  });
+}
+
+function updateFileListActive() {
+  fileListContainer.querySelectorAll('.file-item').forEach(item => {
+    item.classList.toggle('active', item.getAttribute('data-filename') === activeFile);
+  });
+}
+
+// ─── Tab Management ──────────────────────────────────────
+function updateTabUI() {
+  tabsBar.innerHTML = "";
+  openFiles.forEach(filename => {
+    const tab = document.createElement('div');
+    tab.className = `tab ${filename === activeFile ? 'active' : ''}`;
+    const icon = getFileIconSVG(filename);
+    const isDirty = dirtyFiles[filename];
+    tab.innerHTML = `
+      <span class="tab-icon">${icon}</span>
+      <span class="tab-label">${filename}</span>
+      ${isDirty
+        ? '<span class="dirty-indicator"></span>'
+        : '<span class="tab-close" onclick="closeTab(\'' + filename + '\', event)">\u2715</span>'
+      }
+    `;
+    tab.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('tab-close') && !e.target.classList.contains('dirty-indicator')) {
+        if (activeFile !== filename) loadFileContent(filename);
+      }
+    });
+    tabsBar.appendChild(tab);
+  });
+}
+
+function closeTab(filename, event) {
+  if (event) event.stopPropagation();
+  openFiles = openFiles.filter(f => f !== filename);
+  if (activeFile === filename) {
+    activeFile = openFiles.length > 0 ? openFiles[openFiles.length - 1] : Object.keys(vfsCache)[0] || null;
+    if (activeFile) loadFileContent(activeFile);
+    else {
+      codeInput.value = "";
+      activeLanguage = 'javascript';
+      updateLineNumbers();
+      highlightCode();
+      updateCursorPos();
+      syncLivePreview();
+      document.getElementById('breadcrumb-filename').innerHTML = '<span>none</span>';
+      updateTitleFilename();
+    }
+  }
+  updateTabUI();
+  updateFileListActive();
+}
+
+// ─── Search Across Files ─────────────────────────────────
+function performCrossFileSearch() {
+  const query = document.getElementById('search-query-input').value;
+  const resultsContainer = document.getElementById('search-results');
+  resultsContainer.innerHTML = "";
+  if (!query) {
+    document.getElementById('search-results-count').innerText = "";
+    return;
+  }
+  let totalMatches = 0;
+  Object.entries(vfsCache).forEach(([filename, fileData]) => {
+    const lines = fileData.content.split('\n');
+    const fileMatches = [];
+    lines.forEach((line, index) => {
+      if (line.toLowerCase().includes(query.toLowerCase())) {
+        fileMatches.push({ lineNum: index + 1, text: line });
+      }
+    });
+    if (fileMatches.length > 0) {
+      totalMatches += fileMatches.length;
+      const block = document.createElement('div');
+      block.className = 'search-file-block';
+      block.innerHTML = `
+        <div class="search-file-header" onclick="toggleSearchBlock(this)">
+          <span class="chevron">\u25bc</span>
+          ${getFileIconSVG(filename)}
+          <span>${filename}</span>
+          <span class="match-count">${fileMatches.length}</span>
+        </div>
+        <div class="search-file-matches">
+          ${fileMatches.map(m => `
+            <div class="search-match-item" onclick="openFileAtLine('${filename}', ${m.lineNum})">
+              <span class="match-line-num">${m.lineNum}</span>
+              <span>${escapeHtml(m.text.trim())}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      resultsContainer.appendChild(block);
+    }
+  });
+  document.getElementById('search-results-count').innerText = `${totalMatches} result${totalMatches !== 1 ? 's' : ''} in ${Object.keys(vfsCache).length} files`;
+}
+
+function toggleSearchBlock(elem) {
+  const container = elem.nextElementSibling;
+  const chevron = elem.querySelector('.chevron');
+  if (container.style.display === 'none') {
+    container.style.display = 'block';
+    chevron.textContent = '\u25bc';
+  } else {
+    container.style.display = 'none';
+    chevron.textContent = '\u25b6';
+  }
+}
+
+function openFileAtLine(filename, lineNum) {
+  loadFileContent(filename);
+  const lines = codeInput.value.split('\n');
+  let charIndex = 0;
+  for (let i = 0; i < Math.min(lineNum - 1, lines.length); i++) {
+    charIndex += lines[i].length + 1;
+  }
+  codeInput.focus();
+  codeInput.selectionStart = codeInput.selectionEnd = charIndex;
+  updateCursorPos();
+  const scrollContainer = document.getElementById('editor-scroll');
+  const lineHt = Number(getComputedStyle(document.documentElement).getPropertyValue('--line-height').replace('px', ''));
+  scrollContainer.scrollTop = Math.max(0, (lineNum - 5) * lineHt);
+}
+
+// ─── Bottom Panel ────────────────────────────────────────
+function switchPanelTab(tabName) {
+  document.querySelectorAll('.bottom-panel-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel-pane').forEach(p => p.classList.remove('active'));
+  const tab = document.getElementById(`tab-${tabName}`);
+  const pane = document.getElementById(`pane-${tabName}`);
+  if (tab) tab.classList.add('active');
+  if (pane) pane.classList.add('active');
+  if (!bottomPanelVisible) toggleBottomPanel();
+}
+
+function toggleBottomPanel() {
+  const panel = document.getElementById('bottom-panel');
+  if (bottomPanelVisible) {
+    panel.style.display = 'none';
+    bottomPanelVisible = false;
+  } else {
+    panel.style.display = 'flex';
+    panel.style.height = '220px';
+    bottomPanelVisible = true;
+    isPanelMaximized = false;
+  }
+}
+
+function hideBottomPanel() {
+  const panel = document.getElementById('bottom-panel');
+  panel.style.display = 'none';
+  bottomPanelVisible = false;
+}
+
+function togglePanelSize() {
+  const panel = document.getElementById('bottom-panel');
+  if (isPanelMaximized) {
+    panel.style.height = '220px';
+    isPanelMaximized = false;
+  } else {
+    panel.style.height = '70%';
+    isPanelMaximized = true;
+  }
+}
+
+function clearTerminal() {
+  terminalOutput.innerText = "";
+}
+
+// ─── Panel Resize via Drag ───────────────────────────────
+(function initResizeHandle() {
+  const handle = document.getElementById('resize-handle');
+  if (!handle) return;
+  let startY, startHeight;
+  handle.addEventListener('mousedown', (e) => {
+    const panel = document.getElementById('bottom-panel');
+    startY = e.clientY;
+    startHeight = panel.offsetHeight;
+    const onMouseMove = (e) => {
+      const delta = startY - e.clientY;
+      panel.style.height = Math.max(100, Math.min(window.innerHeight * 0.8, startHeight + delta)) + 'px';
+    };
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+})();
+
+// ─── Code Execution ──────────────────────────────────────
+function runCode() {
+  if (!activeFile || executionActive) return;
+  if (dirtyFiles[activeFile]) saveActiveFile();
+
+  executionInputBuffer = [];
+  executionActive = true;
+  if (runBtn) { runBtn.disabled = true; runBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg> Running...'; }
+
+  clearProblems();
+  switchPanelTab('terminal');
+  terminalOutput.innerHTML = "\x1b[90m> Compiling and executing...\x1b[0m\n";
+  terminalOutput.style.color = "";
+  executeStep();
+}
+
+function executeStep() {
+  google.script.run
+    .withSuccessHandler((responseStr) => {
+      handleExecutionResponse(JSON.parse(responseStr));
+    })
+    .withFailureHandler((err) => {
+      showTerminalError(err.message);
+    })
+    .compileAndRun(activeFile, codeInput.value, activeLanguage, executionInputBuffer);
+}
+
+function handleExecutionResponse(response) {
+  terminalOutput.innerHTML = "";
+  if (response.logs && response.logs.length > 0) {
+    terminalOutput.innerText = response.logs.join('\n') + '\n';
+  }
+  if (response.status === 'success') {
+    terminalOutput.innerText += "\n\x1b[32m✓ Process exited with code 0\x1b[0m\n";
+    resetRunningUI();
+  } else if (response.status === 'waiting_for_input') {
+    const inputRow = document.createElement('div');
+    inputRow.className = 'terminal-input-row';
+    inputRow.innerHTML = `<span style="color:var(--accent)">\u276f </span><input type="text" id="terminal-cli-input" autocomplete="off" autofocus />`;
+    terminalOutput.appendChild(inputRow);
+    const cliInput = document.getElementById('terminal-cli-input');
+    cliInput.focus();
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    cliInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const val = cliInput.value;
+        executionInputBuffer.push(val);
+        inputRow.innerHTML = `<span style="color:var(--accent)">\u276f </span><span>${escapeHtml(val)}</span>`;
+        executeStep();
+      }
+    });
+  } else if (response.status === 'error') {
+    terminalOutput.innerText += `\n\x1b[31m✗ Error: ${response.message}\x1b[0m\n`;
+    logProblem(response.message);
+    resetRunningUI();
+  }
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+}
+
+function showTerminalError(message) {
+  terminalOutput.innerText += `\n\x1b[31m✗ Fatal: ${message}\x1b[0m\n`;
+  resetRunningUI();
+}
+
+function resetRunningUI() {
+  executionActive = false;
+  if (runBtn) {
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg> Run and Debug';
+  }
+  const debugVars = document.getElementById('debugger-vars');
+  if (debugVars) debugVars.innerText = `File: ${activeFile}\nStatus: Stopped\nInputs consumed: ${executionInputBuffer.length}`;
+}
+
+// ─── Problems & Linting ──────────────────────────────────
+function logProblem(message) {
+  const lineMatch = message.match(/Line\s+(\d+)/i) || message.match(/:(\d+)/);
+  const targetLine = lineMatch ? Number(lineMatch[1]) : 1;
+  if (!runtimeProblems[activeFile]) runtimeProblems[activeFile] = [];
+  runtimeProblems[activeFile].push({ line: targetLine, severity: 'error', message });
+  updateProblemsUI();
+}
+
+function clearProblems() {
+  if (activeFile) { runtimeProblems[activeFile] = []; updateProblemsUI(); }
+}
+
+function checkBrackets(content) {
+  const stack = [];
+  const problems = [];
+  let inString = false, stringChar = "", inComment = false, inMultiLineComment = false;
+  const lines = content.split('\n');
+  for (let r = 0; r < lines.length; r++) {
+    const line = lines[r];
+    for (let c = 0; c < line.length; c++) {
+      const ch = line[c], next = line[c + 1] || "";
+      if (inComment) break;
+      if (inMultiLineComment) { if (ch === '*' && next === '/') { inMultiLineComment = false; c++; } continue; }
+      if (ch === '/' && next === '/' && !inString) { inComment = true; break; }
+      if (ch === '/' && next === '*' && !inString) { inMultiLineComment = true; c++; continue; }
+      if (inString) { if (ch === '\\') c++; else if (ch === stringChar) inString = false; continue; }
+      if (ch === '"' || ch === "'" || ch === '`') { inString = true; stringChar = ch; continue; }
+      if ('{(['.includes(ch)) stack.push({ char: ch, line: r + 1, col: c + 1 });
+      else if ('})]'.includes(ch)) {
+        if (stack.length === 0) {
+          problems.push({ line: r + 1, severity: 'error', message: `Unexpected '${ch}' without matching bracket.` });
+        } else {
+          const top = stack.pop();
+          const expected = { '{': '}', '(': ')', '[': ']' }[top.char];
+          if (ch !== expected) problems.push({ line: r + 1, severity: 'error', message: `Mismatched bracket: expected '${expected}' but found '${ch}'.` });
+        }
+      }
+    }
+    inComment = false;
+  }
+  while (stack.length > 0) {
+    const top = stack.pop();
+    problems.push({ line: top.line, severity: 'error', message: `Unclosed '${top.char}'.` });
+  }
+  return problems;
+}
+
+function runLinter() {
+  if (!activeFile) return;
+  const content = codeInput.value;
+  const lang = activeLanguage;
+  const problems = [...checkBrackets(content)];
+
+  if (['java', 'cpp', 'javascript', 'gas'].includes(lang)) {
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trim();
+      if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*') || trimmed.startsWith('#')) continue;
+      const stmtRegex = /\b(let|const|var|int|double|float|char|boolean|String|return|cout|cin|printf|System\.out)\b/;
+      if (stmtRegex.test(trimmed) && !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}') && !trimmed.endsWith(',') && !trimmed.endsWith('(') && !trimmed.endsWith('[')) {
+        problems.push({ line: i + 1, severity: 'warning', message: 'Missing semicolon.' });
+      }
+    }
+  }
+  lintProblems[activeFile] = problems;
+  updateProblemsUI();
+}
+
+function updateProblemsUI() {
+  if (!activeFile) return;
+  const lP = lintProblems[activeFile] || [];
+  const rP = runtimeProblems[activeFile] || [];
+  activeFileProblems[activeFile] = [...rP, ...lP];
+
+  updateLineNumbers();
+  highlightCode();
+
+  const pane = document.getElementById('problems-output');
+  const badge = document.getElementById('problems-count');
+  const errorCountEl = document.getElementById('error-count');
+  const warningCountEl = document.getElementById('warning-count');
+  const allProblems = [];
+  Object.entries(activeFileProblems).forEach(([filename, probs]) => {
+    probs.forEach(p => allProblems.push({ filename, ...p }));
+  });
+
+  const errors = allProblems.filter(p => p.severity === 'error').length;
+  const warnings = allProblems.filter(p => p.severity === 'warning').length;
+  if (errorCountEl) errorCountEl.innerText = errors;
+  if (warningCountEl) warningCountEl.innerText = warnings;
+
+  if (allProblems.length === 0) {
+    if (pane) pane.innerHTML = '<div style="padding:12px;color:var(--text-dark);font-size:13px">No problems have been detected in the workspace.</div>';
+    if (badge) badge.style.display = "none";
+  } else {
+    if (pane) pane.innerHTML = "";
+    if (badge) { badge.innerText = allProblems.length; badge.style.display = "inline-block"; }
+    allProblems.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'problem-item';
+      const color = p.severity === 'error' ? 'var(--error-fg)' : 'var(--warning-fg)';
+      const icon = p.severity === 'error' ? '\u26d4' : '\u26a0';
+      div.innerHTML = `<span style="color:${color}">${icon}</span> <span style="flex:1;color:${color}">${escapeHtml(p.message)}</span> <span style="color:var(--text-dark);font-size:11px">${p.filename}:${p.line}</span>`;
+      div.addEventListener('click', () => openFileAtLine(p.filename, p.line));
+      pane.appendChild(div);
+    });
+  }
+}
+
+// ─── Command Palette ─────────────────────────────────────
+const commandPaletteCommands = [
+  { name: "New File", action: () => openNewFileModal(), keybinding: "Ctrl+N" },
+  { name: "Save File", action: () => saveActiveFile(), keybinding: "Ctrl+S" },
+  { name: "Run Code", action: () => runCode(), keybinding: "F5" },
+  { name: "Toggle Sidebar", action: () => toggleSidebar(), keybinding: "Ctrl+B" },
+  { name: "Toggle Terminal", action: () => toggleBottomPanel(), keybinding: "Ctrl+J" },
+  { name: "Show Explorer", action: () => showSidebarPanel('explorer'), keybinding: "Ctrl+Shift+E" },
+  { name: "Show Search", action: () => showSidebarPanel('search'), keybinding: "Ctrl+Shift+F" },
+  { name: "Show Debug", action: () => showSidebarPanel('debug'), keybinding: "Ctrl+Shift+D" },
+  { name: "Clear Terminal", action: () => clearTerminal() },
+  { name: "Theme: Dark+ (Default)", action: () => changeTheme('darkplus') },
+  { name: "Theme: Monokai", action: () => changeTheme('monokai') },
+  { name: "Theme: Dracula", action: () => changeTheme('dracula') },
+  { name: "Theme: Solarized Dark", action: () => changeTheme('solarized') },
+  { name: "Theme: GitHub Dark", action: () => changeTheme('github-dark') },
+  { name: "Font Size: 12px", action: () => changeFontSize(12) },
+  { name: "Font Size: 14px", action: () => changeFontSize(14) },
+  { name: "Font Size: 16px", action: () => changeFontSize(16) },
+  { name: "Font Size: 18px", action: () => changeFontSize(18) },
+  { name: "Toggle Word Wrap", action: () => { const el = document.getElementById('settings-wrap-toggle'); toggleWordWrap(!el.checked); } },
+  { name: "Show Settings", action: () => showSidebarPanel('settings') },
+  { name: "Close Active Tab", action: () => { if (activeFile) closeTab(activeFile); }, keybinding: "Ctrl+W" }
+];
+
+function openCommandPalette() {
+  const overlay = document.getElementById('command-palette-overlay');
+  const input = document.getElementById('command-palette-input');
+  overlay.style.display = 'flex';
+  input.value = '> ';
+  setTimeout(() => { input.focus(); input.selectionStart = input.selectionEnd = input.value.length; }, 50);
+  filterCommandPalette();
+}
+
+function openQuickOpen() {
+  const overlay = document.getElementById('command-palette-overlay');
+  const input = document.getElementById('command-palette-input');
+  overlay.style.display = 'flex';
+  input.value = '';
+  input.placeholder = 'Search files by name';
+  setTimeout(() => input.focus(), 50);
+  filterCommandPalette();
+}
+
+function closeCommandPalette() {
+  const overlay = document.getElementById('command-palette-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    const input = document.getElementById('command-palette-input');
+    if (input) input.placeholder = 'Type a command...';
+  }
+}
+
+function filterCommandPalette() {
+  const input = document.getElementById('command-palette-input');
+  const results = document.getElementById('command-palette-results');
+  const query = input.value.replace(/^>\s*/, '').toLowerCase();
+  results.innerHTML = '';
+
+  if (!input.value.startsWith('>')) {
+    // File quick open mode
+    const files = Object.keys(vfsCache).filter(f => !query || f.toLowerCase().includes(query));
+    files.forEach(filename => {
+      const div = document.createElement('div');
+      div.className = 'command-result-item';
+      div.innerHTML = `<span style="display:flex;align-items:center;gap:8px">${getFileIconSVG(filename)} ${filename}</span>`;
+      div.addEventListener('click', () => { closeCommandPalette(); loadFileContent(filename); });
+      results.appendChild(div);
+    });
+    return;
+  }
+
+  const filtered = commandPaletteCommands.filter(cmd => !query || cmd.name.toLowerCase().includes(query));
+  filtered.forEach((cmd, idx) => {
+    const div = document.createElement('div');
+    div.className = `command-result-item ${idx === 0 ? 'selected' : ''}`;
+    div.innerHTML = `<span>${cmd.name}</span>${cmd.keybinding ? `<span class="command-result-keybinding">${cmd.keybinding}</span>` : ''}`;
+    div.addEventListener('click', () => { closeCommandPalette(); cmd.action(); });
+    results.appendChild(div);
+  });
+}
+
+document.getElementById('command-palette-input').addEventListener('keydown', (e) => {
+  const results = document.getElementById('command-palette-results');
+  const items = results.querySelectorAll('.command-result-item');
+  let selectedIdx = Array.from(items).findIndex(i => i.classList.contains('selected'));
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (items.length > 0) {
+      items.forEach(i => i.classList.remove('selected'));
+      selectedIdx = (selectedIdx + 1) % items.length;
+      items[selectedIdx].classList.add('selected');
+      items[selectedIdx].scrollIntoView({ block: 'nearest' });
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (items.length > 0) {
+      items.forEach(i => i.classList.remove('selected'));
+      selectedIdx = (selectedIdx - 1 + items.length) % items.length;
+      items[selectedIdx].classList.add('selected');
+      items[selectedIdx].scrollIntoView({ block: 'nearest' });
+    }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const selected = results.querySelector('.command-result-item.selected');
+    if (selected) selected.click();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    closeCommandPalette();
+  }
+});
+
+// ─── Context Menus ───────────────────────────────────────
+function toggleContextMenu(event, menuId) {
+  event.stopPropagation();
+  hideAllContextMenus();
+  const menu = document.getElementById(menuId);
+  if (!menu) return;
+  const rect = event.target.getBoundingClientRect();
+  menu.style.left = `${rect.left}px`;
+  menu.style.top = `${rect.bottom}px`;
+  menu.style.display = 'block';
+}
+
+function hideAllContextMenus() {
+  document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.context-menu') && !e.target.closest('.menu-item')) {
+    hideAllContextMenus();
+  }
+});
+
+// ─── Notifications ───────────────────────────────────────
+function showNotification(message, type = 'info') {
+  const container = document.getElementById('notification-container');
+  if (!container) return;
+  const notif = document.createElement('div');
+  notif.className = 'notification';
+  const colors = { info: 'var(--accent)', success: 'var(--success-fg)', error: 'var(--error-fg)', warning: 'var(--warning-fg)' };
+  notif.style.borderLeftColor = colors[type] || colors.info;
+  notif.style.borderLeft = `3px solid ${colors[type] || colors.info}`;
+  notif.innerHTML = `
+    <span style="flex:1">${escapeHtml(message)}</span>
+    <button class="notification-close" onclick="this.parentElement.remove()">\u2715</button>
+  `;
+  container.appendChild(notif);
+  setTimeout(() => { if (notif.parentElement) notif.remove(); }, 4000);
+}
+
+// ─── Find and Replace ────────────────────────────────────
+function openFindReplace() {
+  // Focus the search panel for now
+  showSidebarPanel('search');
+  setTimeout(() => document.getElementById('search-query-input').focus(), 100);
+}
+
+// ─── Initialization ──────────────────────────────────────
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initVFSCache);
+} else {
+  initVFSCache();
+}
+</script>

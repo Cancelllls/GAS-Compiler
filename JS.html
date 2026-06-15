@@ -1,0 +1,1496 @@
+<script>
+// Themes definition database
+  const themes = {
+    darkplus: {
+      activity: "#181818", side: "#252526", main: "#1e1e1e", tabs: "#2d2d2d", terminal: "#181818", text: "#d4d4d4", accent: "#007acc", border: "#3c3c3c", tabInactive: "#2d2d2d", tabActive: "#1e1e1e"
+    },
+    monokai: {
+      activity: "#191919", side: "#272822", main: "#272822", tabs: "#1e1f1c", terminal: "#1e1f1c", text: "#f8f8f2", accent: "#a6e22e", border: "#3e3d32", tabInactive: "#1e1f1c", tabActive: "#272822"
+    },
+    dracula: {
+      activity: "#191a21", side: "#21222c", main: "#282a36", tabs: "#191a21", terminal: "#282a36", text: "#f8f8f2", accent: "#bd93f9", border: "#44475a", tabInactive: "#191a21", tabActive: "#282a36"
+    },
+    solarized: {
+      activity: "#00212b", side: "#002b36", main: "#073642", tabs: "#00212b", terminal: "#002b36", text: "#839496", accent: "#268bd2", border: "#0a5266", tabInactive: "#00212b", tabActive: "#073642"
+    }
+  };
+
+  // Language configurations for parser rules
+  const tokenizerRules = {
+    javascript: {
+      comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+      string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/,
+      number: /\b0x[a-fA-F0-9]+\b|\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/,
+      keyword: /\b(let|const|var|function|return|if|else|for|while|do|switch|case|default|break|continue|try|catch|finally|throw|new|this|class|extends|import|export|from|typeof|instanceof|in|of|async|await|true|false|null|undefined)\b/,
+      builtin: /\b(console|document|window|google|script|run|PropertiesService|HtmlService|Logger|Math|JSON|Array|Object|String|Number|Boolean|Map|Set)\b/,
+      operator: /[-+*/%=!&|^<>~?:]/,
+      punctuation: /[{}()\[\],;.]/
+    },
+    gas: {
+      comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+      string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/,
+      number: /\b0x[a-fA-F0-9]+\b|\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/,
+      keyword: /\b(let|const|var|function|return|if|else|for|while|do|switch|case|default|break|continue|try|catch|finally|throw|new|this|class|extends|import|export|from|typeof|instanceof|in|of|async|await|true|false|null|undefined)\b/,
+      builtin: /\b(console|document|window|google|script|run|PropertiesService|HtmlService|Logger|SpreadsheetApp|DocumentApp|SlidesApp|DriveApp|GmailApp|CalendarApp|UrlFetchApp|Session|User|Utilities|MailApp)\b/,
+      operator: /[-+*/%=!&|^<>~?:]/,
+      punctuation: /[{}()\[\],;.]/
+    },
+    python: {
+      comment: /#.*/,
+      string: /"""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+      number: /\b\d+(?:\.\d+)?\b/,
+      keyword: /\b(def|return|if|elif|else|for|while|break|continue|pass|import|from|as|in|is|and|or|not|try|except|finally|raise|assert|class|with|lambda|global|nonlocal|True|False|None|print|input)\b/,
+      decorator: /@\w+/,
+      operator: /[-+*/%=!&|^<>~?:]/,
+      punctuation: /[{}()\[\],;.]/
+    },
+    cpp: {
+      comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+      string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+      number: /\b\d+(?:\.\d+)?\b/,
+      keyword: /\b(auto|break|case|catch|char|class|const|continue|default|delete|do|double|else|enum|explicit|export|extern|false|float|for|friend|goto|if|inline|int|long|mutable|namespace|new|operator|private|protected|public|register|return|short|signed|sizeof|static|struct|switch|template|this|throw|true|try|typedef|typeid|typename|union|unsigned|using|virtual|void|volatile|wchar_t|while|std|cout|cin|endl)\b/,
+      preprocessor: /#\s*(include|define|ifdef|ifndef|endif|if|elif|else|undef)\b.*|#include\s*<[^>]+>/,
+      operator: /[-+*/%=!&|^<>~?:]/,
+      punctuation: /[{}()\[\],;.]/
+    },
+    java: {
+      comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+      string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+      number: /\b\d+(?:\.\d+)?\b/,
+      keyword: /\b(public|private|protected|class|interface|enum|extends|implements|package|import|static|final|void|int|double|float|char|boolean|long|short|byte|new|return|if|else|for|while|do|switch|case|break|continue|default|try|catch|finally|throw|throws|this|super|true|false|null|System|String|Scanner)\b/,
+      annotation: /@\w+/,
+      operator: /[-+*/%=!&|^<>~?:]/,
+      punctuation: /[{}()\[\],;.]/
+    },
+    rust: {
+      comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+      string: /"(?:\\.|[^"\\])*"|'[^']'/,
+      number: /\b\d+(?:\.\d+)?(?:u8|u16|u32|u64|u128|i8|i16|i32|i64|i128|f32|f64)?\b/,
+      keyword: /\b(fn|let|mut|const|static|ref|match|if|else|loop|while|for|in|return|break|continue|impl|trait|struct|enum|union|type|use|mod|pub|crate|self|Self|true|false|unsafe|where|move|async|await)\b/,
+      macro: /\b\w+!/,
+      operator: /[-+*/%=!&|^<>~?:]/,
+      punctuation: /[{}()\[\],;.]/
+    },
+    go: {
+      comment: /\/\/.*|\/\*[\s\S]*?\*\//,
+      string: /"(?:\\.|[^"\\])*"|`[^`]*`/,
+      number: /\b\d+(?:\.\d+)?\b/,
+      keyword: /\b(package|import|func|return|var|const|type|struct|interface|if|else|switch|case|default|select|for|range|break|continue|fallthrough|go|chan|map|defer|panic|recover|nil|true|false)\b/,
+      operator: /[-+*/%=!&|^<>~?:]/,
+      punctuation: /[{}()\[\],;.]/
+    },
+    sql: {
+      comment: /--.*|\/\*[\s\S]*?\*\//,
+      string: /'(?:''|[^'])*'/,
+      number: /\b\d+(?:\.\d+)?\b/,
+      keyword: /\b(SELECT|FROM|WHERE|AND|OR|NOT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|TABLE|INDEX|JOIN|INNER|LEFT|RIGHT|FULL|ON|GROUP|BY|HAVING|ORDER|LIMIT|OFFSET|IN|LIKE|BETWEEN|IS|NULL|TRUE|FALSE|AS|INTO|VALUES|SET)\b/i,
+      operator: /[-+*/%=!&|^<>~?:|]/,
+      punctuation: /[{}()\[\],;.]/
+    },
+    html: {
+      comment: /<!--[\s\S]*?-->/,
+      string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+      tag: /<\/?(?:[a-zA-Z0-9:-]+)/,
+      attr: /\s+([a-zA-Z0-9:-]+)(?=\s*=)/,
+      operator: /=/,
+      punctuation: /[<>]/
+    },
+    css: {
+      comment: /\/\*[\s\S]*?\*\//,
+      string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+      selector: /[.#a-zA-Z0-9:-]+(?=\s*\{)/,
+      property: /[a-zA-Z-]+(?=\s*:)/,
+      value: /:\s*[^;{}]+;/,
+      punctuation: /[{}():;]/
+    },
+    ruby: {
+      comment: /#.*/,
+      string: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/,
+      number: /\b\d+(?:\.\d+)?\b/,
+      keyword: /\b(def|end|if|else|elsif|unless|while|until|for|in|break|next|redo|retry|return|class|module|yield|self|true|false|nil|and|or|not|begin|rescue|ensure|raise)\b/,
+      operator: /[-+*/%=!&|^<>~?:]/,
+      punctuation: /[{}()\[\],;.]/
+    }
+  };
+
+  const IntelliSenseDb = {
+    javascript: [
+      { name: "let", type: "K", desc: "Declares a block-scoped local variable." },
+      { name: "const", type: "K", desc: "Declares a block-scoped read-only constant." },
+      { name: "var", type: "K", desc: "Declares a function-scoped variable." },
+      { name: "function", type: "K", desc: "Declares a function definition." },
+      { name: "return", type: "K", desc: "Exits the current function and returns a value." },
+      { name: "if", type: "K", desc: "Conditional statement." },
+      { name: "else", type: "K", desc: "Alternative branch in a conditional statement." },
+      { name: "for", type: "K", desc: "For-loop construct." },
+      { name: "while", type: "K", desc: "While-loop construct." },
+      { name: "console.log", type: "M", desc: "Writes message to the standard console output." },
+      { name: "document.getElementById", type: "M", desc: "Returns a reference to the element by its ID." },
+      { name: "for-loop", type: "S", body: "for (let ${1:i} = 0; ${1:i} < ${2:array}.length; ${1:i}++) {\n  ${0}\n}", desc: "Standard JavaScript for loop" },
+      { name: "function-snippet", type: "S", body: "function ${1:name}(${2:params}) {\n  ${0}\n}", desc: "Function declaration block" }
+    ],
+    gas: [
+      { name: "SpreadsheetApp", type: "K", desc: "Google Sheets service endpoint." },
+      { name: "DocumentApp", type: "K", desc: "Google Docs service endpoint." },
+      { name: "PropertiesService", type: "K", desc: "GAS persistent properties service." },
+      { name: "HtmlService", type: "K", desc: "GAS html UI service." },
+      { name: "UrlFetchApp", type: "K", desc: "GAS HTTP fetch service." },
+      { name: "Logger.log", type: "M", desc: "Logs a message to Apps Script execution logs." }
+    ],
+    python: [
+      { name: "def", type: "K", desc: "Defines a python function." },
+      { name: "return", type: "K", desc: "Returns from a function." },
+      { name: "print", type: "M", desc: "Prints values to standard output." },
+      { name: "input", type: "M", desc: "Reads a string from standard input." },
+      { name: "import", type: "K", desc: "Imports modules." },
+      { name: "if-main", type: "S", body: "if __name__ == '__main__':\n  ${0}", desc: "Main entry block" },
+      { name: "for-in", type: "S", body: "for ${1:item} in range(${2:limit}):\n  ${0}", desc: "Range iteration block" }
+    ],
+    cpp: [
+      { name: "cout", type: "K", desc: "C++ standard character output stream." },
+      { name: "cin", type: "K", desc: "C++ standard character input stream." },
+      { name: "endl", type: "K", desc: "C++ newline stream manipulator." },
+      { name: "main", type: "M", desc: "Program entry point." },
+      { name: "for-loop", type: "S", body: "for (int ${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {\n  ${0}\n}", desc: "Standard C++ for loop" },
+      { name: "cout-print", type: "S", body: "std::cout << ${1:\"message\"} << std::endl;", desc: "C++ output statement" }
+    ],
+    java: [
+      { name: "public class", type: "S", body: "public class ${1:Main} {\n  public static void main(String[] args) {\n    ${0}\n  }\n}", desc: "Public Class boilerplate" },
+      { name: "System.out.println", type: "M", desc: "Prints arguments to system console with newline." },
+      { name: "Scanner", type: "K", desc: "Java scanner utility for reading inputs." }
+    ],
+    rust: [
+      { name: "fn", type: "K", desc: "Rust function definition." },
+      { name: "let mut", type: "K", desc: "Rust mutable variable declaration." },
+      { name: "println!", type: "M", desc: "Prints formatted text to stdout." }
+    ],
+    go: [
+      { name: "func", type: "K", desc: "Go function keyword." },
+      { name: "fmt.Println", type: "M", desc: "Go console printer." },
+      { name: "import", type: "K", desc: "Import package declarations." }
+    ],
+    sql: [
+      { name: "SELECT", type: "K", desc: "Retrieves rows from a table." },
+      { name: "INSERT INTO", type: "S", body: "INSERT INTO ${1:table} (${2:columns}) VALUES (${3:values});", desc: "Insert row snippet" }
+    ],
+    html: [
+      { name: "div", type: "S", body: "<div>\n  ${0}\n</div>", desc: "HTML div tag" },
+      { name: "a", type: "S", body: "<a href=\"${1:#}\">${2:link}</a>", desc: "HTML anchor tag" }
+    ],
+    css: [
+      { name: "color", type: "K", desc: "Sets text color." },
+      { name: "background-color", type: "K", desc: "Sets background color." },
+      { name: "display: flex", type: "S", body: "display: flex;\njustify-content: ${1:center};\nalign-items: ${2:center};", desc: "CSS Flexbox block" }
+    ],
+    ruby: [
+      { name: "def", type: "K", desc: "Defines ruby function." },
+      { name: "puts", type: "M", desc: "Prints string to output." }
+    ]
+  };
+
+  // State Management
+  let vfsCache = {}; // Local memory VFS cache
+  let openFiles = [];
+  let activeFile = null;
+  let activeLanguage = 'javascript';
+  let dirtyFiles = {};
+
+  // Linter & Problems State Management
+  let lintProblems = {};
+  let runtimeProblems = {};
+  let activeFileProblems = {};
+  
+  // Execution loop states
+  let executionInputBuffer = [];
+  let executionActive = false;
+
+  // DOM elements
+  const codeInput = document.getElementById('code-input');
+  const codeHighlighted = document.getElementById('code-highlighted');
+  const codeContentLayer = document.getElementById('code-content-layer');
+  const lineNumbers = document.getElementById('line-numbers');
+  const terminalOutput = document.getElementById('terminal-output');
+  const runBtn = document.getElementById('run-btn');
+  const statusLeft = document.getElementById('status-left');
+  const statusRight = document.getElementById('status-right');
+  
+  const sidebar = document.getElementById('sidebar');
+  const fileListContainer = document.getElementById('file-list');
+  const tabsBar = document.getElementById('tabs-bar');
+  const previewPane = document.getElementById('preview-pane');
+  const previewIframe = document.getElementById('preview-iframe');
+  
+  // Suggestions dropdown
+  const suggestionsMenu = document.getElementById('suggestions-menu');
+  const suggestionsList = document.getElementById('suggestions-list');
+  const suggestionsDoc = document.getElementById('suggestions-doc');
+  let suggestionsVisible = false;
+  let activeSuggestions = [];
+  let selectedSuggestionIdx = 0;
+
+  // Render SVG icons depending on the file format (Zero External Dependencies)
+  function getFileIconSVG(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    switch(ext) {
+      case 'js':
+      case 'gs':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="#f1e05a"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><text x="6" y="16" fill="black" font-size="10" font-family="monospace" font-weight="bold">JS</text></svg>`;
+      case 'py':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="none" stroke="#3572a5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+      case 'cpp':
+      case 'h':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="#f34b7d"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><text x="4" y="15" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">C++</text></svg>`;
+      case 'java':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="none" stroke="#b07219" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h14v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line></svg>`;
+      case 'rs':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="none" stroke="#dea584" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>`;
+      case 'go':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="#00add8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><text x="5" y="16" fill="black" font-size="10" font-family="monospace" font-weight="bold">GO</text></svg>`;
+      case 'html':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="none" stroke="#e34c26" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
+      case 'css':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="none" stroke="#563d7c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>`;
+      case 'sql':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="none" stroke="#e38c00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>`;
+      case 'rb':
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="none" stroke="#701516" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"></path></svg>`;
+      default:
+        return `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink: 0;" fill="none" stroke="#858585" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
+    }
+  }
+
+  // Sync scroll
+  codeInput.addEventListener('scroll', () => {
+    codeHighlighted.scrollTop = codeInput.scrollTop;
+    codeHighlighted.scrollLeft = codeInput.scrollLeft;
+    lineNumbers.scrollTop = codeInput.scrollTop;
+  });
+
+  // Track cursor and inputs
+  let lintTimeout = null;
+  codeInput.addEventListener('input', () => {
+    if (!activeFile) return;
+    vfsCache[activeFile].content = codeInput.value; // sync cache
+    dirtyFiles[activeFile] = true;
+    updateTabUI();
+    updateLineNumbers();
+    highlightCode();
+    updateCursorPos();
+    triggerIntelliSense();
+    syncLivePreview();
+
+    // Debounced real-time linter
+    clearTimeout(lintTimeout);
+    lintTimeout = setTimeout(() => {
+      runLinter();
+    }, 500);
+  });
+
+  codeInput.addEventListener('mouseup', () => {
+    updateCursorPos();
+    hideSuggestions();
+  });
+
+  codeInput.addEventListener('keyup', (e) => {
+    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      updateCursorPos();
+      hideSuggestions();
+    }
+  });
+
+  // Key Intercepts for Editor shortcuts & IntelliSense
+  codeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && suggestionsVisible) {
+      e.preventDefault();
+      hideSuggestions();
+      return;
+    }
+
+    if (suggestionsVisible && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault();
+      if (e.key === 'ArrowDown') {
+        selectedSuggestionIdx = (selectedSuggestionIdx + 1) % activeSuggestions.length;
+      } else {
+        selectedSuggestionIdx = (selectedSuggestionIdx - 1 + activeSuggestions.length) % activeSuggestions.length;
+      }
+      updateActiveSuggestionSelection();
+      return;
+    }
+
+    if (suggestionsVisible && (e.key === 'Enter' || e.key === 'Tab')) {
+      e.preventDefault();
+      insertSelectedSuggestion();
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = codeInput.selectionStart;
+      const end = codeInput.selectionEnd;
+      codeInput.value = codeInput.value.substring(0, start) + "  " + codeInput.value.substring(end);
+      codeInput.selectionStart = codeInput.selectionEnd = start + 2;
+      updateLineNumbers();
+      highlightCode();
+      updateCursorPos();
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const cursor = codeInput.selectionStart;
+      const text = codeInput.value;
+      const beforeCursor = text.substring(0, cursor);
+      const afterCursor = text.substring(cursor);
+      
+      const lines = beforeCursor.split('\n');
+      const currentLine = lines[lines.length - 1];
+      const indentMatch = currentLine.match(/^\s*/);
+      let indent = indentMatch ? indentMatch[0] : "";
+      
+      const trimmed = currentLine.trim();
+      let extraIndent = "";
+      if (trimmed.endsWith('{') || trimmed.endsWith(':') || trimmed.endsWith('(') || trimmed.endsWith('[')) {
+        extraIndent = "  ";
+      }
+      
+      const insertText = "\n" + indent + extraIndent;
+      codeInput.value = beforeCursor + insertText + afterCursor;
+      codeInput.selectionStart = codeInput.selectionEnd = cursor + insertText.length;
+      
+      updateLineNumbers();
+      highlightCode();
+      updateCursorPos();
+      return;
+    }
+
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      saveActiveFile();
+    }
+
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      runCode();
+    }
+  });
+
+  // Get current cursor row & col
+  function updateCursorPos() {
+    const textBefore = codeInput.value.substring(0, codeInput.selectionStart);
+    const lines = textBefore.split('\n');
+    const currLine = lines.length;
+    const currCol = lines[lines.length - 1].length + 1;
+    statusRight.innerText = `Spaces: 2 | UTF-8 | LF | ${activeLanguage.toUpperCase()} (Ln ${currLine}, Col ${currCol})`;
+  }
+
+  // Live Sync line numbers count
+  function updateLineNumbers() {
+    if (!activeFile) return;
+    const lines = codeInput.value.split('\n').length;
+    lineNumbers.innerHTML = "";
+    
+    const fileProblems = activeFileProblems[activeFile] || [];
+    
+    for (let i = 1; i <= lines; i++) {
+      const lineDiv = document.createElement('div');
+      lineDiv.className = 'line-num-item';
+      lineDiv.innerText = i;
+      
+      const lineProblem = fileProblems.find(p => p.line === i);
+      if (lineProblem) {
+        if (lineProblem.severity === 'error') {
+          lineDiv.classList.add('gutter-error');
+        } else {
+          lineDiv.classList.add('gutter-warning');
+        }
+        lineDiv.title = lineProblem.message;
+      }
+      
+      lineNumbers.appendChild(lineDiv);
+    }
+  }
+
+  // Activity Bar panel switching
+  function showSidebarPanel(panelName) {
+    const sidebar = document.getElementById('sidebar');
+    const panels = ['explorer', 'search', 'debug', 'settings'];
+    
+    document.querySelectorAll('.activity-icon').forEach(icon => icon.classList.remove('active'));
+    
+    const currentActivePanel = document.querySelector('.sidebar-panel:not([style*="display: none"])');
+    const currentActivePanelName = currentActivePanel ? currentActivePanel.id.replace('-panel', '') : null;
+    
+    if (sidebar.style.display !== 'none' && currentActivePanelName === panelName) {
+      sidebar.style.display = 'none';
+      return;
+    }
+    
+    sidebar.style.display = 'flex';
+    panels.forEach(p => {
+      const panel = document.getElementById(`${p}-panel`);
+      if (p === panelName) {
+        panel.style.display = 'flex';
+        document.getElementById(`icon-${p}`).classList.add('active');
+      } else {
+        panel.style.display = 'none';
+      }
+    });
+  }
+
+  function toggleSidebar() {
+    if (sidebar.style.display === 'none') {
+      sidebar.style.display = 'flex';
+    } else {
+      sidebar.style.display = 'none';
+    }
+  }
+
+  function togglePreviewPane(visible) {
+    previewPane.style.display = visible ? 'flex' : 'none';
+  }
+
+  // Greedy single-pass regex tokenizer
+  function getTokens(text, lang) {
+    const rules = tokenizerRules[lang] || tokenizerRules['javascript'];
+    const matches = [];
+    
+    for (let [type, regex] of Object.entries(rules)) {
+      let r = new RegExp(regex.source, regex.flags.includes('g') ? regex.flags : regex.flags + 'g');
+      let m;
+      while ((m = r.exec(text)) !== null) {
+        matches.push({
+          start: m.index,
+          end: r.lastIndex,
+          type: type,
+          text: m[0]
+        });
+        if (m.index === r.lastIndex) {
+          r.lastIndex++;
+        }
+      }
+    }
+    
+    matches.sort((a, b) => {
+      if (a.start !== b.start) return a.start - b.start;
+      return (b.end - b.start) - (a.end - a.start);
+    });
+    
+    const kept = [];
+    let lastEnd = 0;
+    for (let match of matches) {
+      if (match.start >= lastEnd) {
+        kept.push(match);
+        lastEnd = match.end;
+      }
+    }
+    
+    return kept;
+  }
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Renders syntax highlighting
+  function highlightCode(markerIndex = -1) {
+    const text = codeInput.value;
+    const tokens = getTokens(text, activeLanguage);
+    let html = "";
+    let currentIndex = 0;
+    
+    function appendText(start, end) {
+      let sub = text.substring(start, end);
+      if (markerIndex >= start && markerIndex <= end) {
+        let relIdx = markerIndex - start;
+        let before = sub.substring(0, relIdx);
+        let after = sub.substring(relIdx);
+        return escapeHtml(before) + '<span id="intellisense-marker"></span>' + escapeHtml(after);
+      }
+      return escapeHtml(sub);
+    }
+    
+    for (let token of tokens) {
+      if (token.start > currentIndex) {
+        html += appendText(currentIndex, token.start);
+      }
+      
+      if (markerIndex >= token.start && markerIndex <= token.end) {
+        let relStart = markerIndex - token.start;
+        let before = token.text.substring(0, relStart);
+        let after = token.text.substring(relStart);
+        html += `<span class="token-${token.type}">${escapeHtml(before)}<span id="intellisense-marker"></span>${escapeHtml(after)}</span>`;
+      } else {
+        html += `<span class="token-${token.type}">${escapeHtml(token.text)}</span>`;
+      }
+      currentIndex = token.end;
+    }
+    
+    if (currentIndex < text.length) {
+      html += appendText(currentIndex, text.length);
+    }
+    if (markerIndex === text.length) {
+      html += '<span id="intellisense-marker"></span>';
+    }
+    
+    // Split highlighted HTML by lines and wrap inside highlight blocks
+    const lines = html.split('\n');
+    let finalHtml = "";
+    const fileProblems = activeFile ? (activeFileProblems[activeFile] || []) : [];
+    
+    lines.forEach((lineHtml, index) => {
+      const lineNum = index + 1;
+      const lineProblem = fileProblems.find(p => p.line === lineNum);
+      
+      let className = "editor-line-normal";
+      if (lineProblem) {
+        if (lineProblem.severity === 'error') {
+          className = "editor-line-error";
+        } else {
+          className = "editor-line-warning";
+        }
+      }
+      const displayHtml = lineHtml === "" ? " " : lineHtml;
+      finalHtml += `<div class="${className}">${displayHtml}</div>`;
+    });
+    
+    codeContentLayer.innerHTML = finalHtml;
+  }
+
+  function syncLivePreview() {
+    if (activeLanguage === 'html') {
+      togglePreviewPane(true);
+      previewIframe.srcdoc = codeInput.value;
+    } else {
+      togglePreviewPane(false);
+    }
+  }
+
+  function fuzzyMatch(str, pattern) {
+    pattern = pattern.toLowerCase();
+    str = str.toLowerCase();
+    let patternIdx = 0;
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] === pattern[patternIdx]) {
+        patternIdx++;
+        if (patternIdx === pattern.length) return true;
+      }
+    }
+    return false;
+  }
+
+  function scanLocalSymbols(text) {
+    const symbols = [];
+    const seen = new Set();
+    const regexes = [
+      /\b(?:function|fn|def|let|const|var|int|double|float|char|bool|class)\s+([a-zA-Z_]\w*)\b/g,
+      /\b([a-zA-Z_]\w*)\s*=\s*(?![=])/g
+    ];
+    
+    const dbKeywords = (IntelliSenseDb[activeLanguage] || []).map(x => x.name);
+    
+    for (let regex of regexes) {
+      let r = new RegExp(regex.source, 'g');
+      let match;
+      while ((match = r.exec(text)) !== null) {
+        const name = match[1];
+        if (name && !seen.has(name) && name.length > 1 && !dbKeywords.includes(name)) {
+          seen.add(name);
+          symbols.push({
+            name: name,
+            type: "V",
+            desc: `Local symbol scanner detected: "${name}"`
+          });
+        }
+      }
+    }
+    return symbols;
+  }
+
+  function triggerIntelliSense() {
+    const textBefore = codeInput.value.substring(0, codeInput.selectionStart);
+    const lastWordMatch = textBefore.match(/[a-zA-Z_0-9:-]+$/);
+    const prefix = lastWordMatch ? lastWordMatch[0] : "";
+    
+    if (prefix.length < 1) {
+      hideSuggestions();
+      return;
+    }
+    
+    const langDb = IntelliSenseDb[activeLanguage] || [];
+    const locals = scanLocalSymbols(codeInput.value);
+    const fullList = [...langDb, ...locals];
+    
+    const matches = fullList.filter(item => fuzzyMatch(item.name, prefix));
+    
+    matches.sort((a, b) => {
+      const aStarts = a.name.toLowerCase().startsWith(prefix.toLowerCase());
+      const bStarts = b.name.toLowerCase().startsWith(prefix.toLowerCase());
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    
+    activeSuggestions = matches.slice(0, 15);
+    
+    if (activeSuggestions.length > 0) {
+      selectedSuggestionIdx = 0;
+      renderSuggestionsMenu();
+      positionSuggestionsMenu();
+    } else {
+      hideSuggestions();
+    }
+  }
+
+  function hideSuggestions() {
+    suggestionsMenu.style.display = 'none';
+    suggestionsVisible = false;
+  }
+
+  function renderSuggestionsMenu() {
+    suggestionsList.innerHTML = "";
+    activeSuggestions.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = `suggestion-item ${idx === selectedSuggestionIdx ? 'selected' : ''}`;
+      
+      const iconLabel = item.type || 'K';
+      
+      div.innerHTML = `
+        <div class="suggestion-content">
+          <span class="suggestion-icon icon-${iconLabel}">${iconLabel}</span>
+          <span>${item.name}</span>
+        </div>
+      `;
+      div.addEventListener('click', () => {
+        selectedSuggestionIdx = idx;
+        insertSelectedSuggestion();
+      });
+      suggestionsList.appendChild(div);
+    });
+    
+    const activeItem = activeSuggestions[selectedSuggestionIdx];
+    suggestionsDoc.innerText = activeItem ? activeItem.desc : "No description available.";
+    suggestionsVisible = true;
+  }
+
+  function updateActiveSuggestionSelection() {
+    const items = suggestionsList.querySelectorAll('.suggestion-item');
+    items.forEach((div, idx) => {
+      if (idx === selectedSuggestionIdx) {
+        div.classList.add('selected');
+        div.scrollIntoView({ block: 'nearest' });
+      } else {
+        div.classList.remove('selected');
+      }
+    });
+    
+    const activeItem = activeSuggestions[selectedSuggestionIdx];
+    suggestionsDoc.innerText = activeItem ? activeItem.desc : "";
+  }
+
+  function positionSuggestionsMenu() {
+    const selectionStart = codeInput.selectionStart;
+    highlightCode(selectionStart);
+    
+    const marker = document.getElementById('intellisense-marker');
+    if (marker) {
+      const rect = marker.getBoundingClientRect();
+      const editorWrapperRect = document.querySelector('.editor-wrapper').getBoundingClientRect();
+      
+      let top = rect.bottom - editorWrapperRect.top + 2;
+      let left = rect.left - editorWrapperRect.left;
+      
+      if (left + 460 > window.innerWidth) {
+        left = window.innerWidth - 480;
+      }
+      if (top + 220 > window.innerHeight) {
+        top = rect.top - editorWrapperRect.top - 225;
+      }
+      
+      suggestionsMenu.style.top = `${top}px`;
+      suggestionsMenu.style.left = `${left}px`;
+      suggestionsMenu.style.display = 'flex';
+    }
+  }
+
+  function insertSelectedSuggestion() {
+    const item = activeSuggestions[selectedSuggestionIdx];
+    if (!item) return;
+    
+    const textBefore = codeInput.value.substring(0, codeInput.selectionStart);
+    const lastWordMatch = textBefore.match(/[a-zA-Z_0-9:-]+$/);
+    const prefix = lastWordMatch ? lastWordMatch[0] : "";
+    
+    const start = codeInput.selectionStart - prefix.length;
+    const end = codeInput.selectionStart;
+    const val = codeInput.value;
+    
+    let insertText = item.name;
+    
+    if (item.type === 'S' && item.body) {
+      const expanded = expandSnippet(item.body);
+      insertText = expanded.text;
+    }
+    
+    codeInput.value = val.substring(0, start) + insertText + val.substring(end);
+    codeInput.selectionStart = codeInput.selectionEnd = start + insertText.length;
+    
+    if (activeFile) {
+      vfsCache[activeFile].content = codeInput.value;
+      dirtyFiles[activeFile] = true;
+    }
+    updateTabUI();
+    updateLineNumbers();
+    highlightCode();
+    updateCursorPos();
+    hideSuggestions();
+    syncLivePreview();
+    codeInput.focus();
+  }
+
+  function clearTerminal() {
+    terminalOutput.innerText = "";
+  }
+
+  function changeTheme(themeName) {
+    const t = themes[themeName] || themes.darkplus;
+    const root = document.documentElement;
+    root.style.setProperty('--bg-activity', t.activity);
+    root.style.setProperty('--bg-side', t.side);
+    root.style.setProperty('--bg-main', t.main);
+    root.style.setProperty('--bg-tabs', t.tabs);
+    root.style.setProperty('--bg-terminal', t.terminal);
+    root.style.setProperty('--text-main', t.text);
+    root.style.setProperty('--accent', t.accent);
+    root.style.setProperty('--border', t.border);
+    root.style.setProperty('--tab-inactive', t.tabInactive);
+    root.style.setProperty('--tab-active', t.tabActive);
+    
+    document.getElementById('settings-theme-select').value = themeName;
+  }
+
+  function changeFontSize(size) {
+    document.documentElement.style.setProperty('--font-size', size + 'px');
+    const lh = Math.round(size * 1.4);
+    document.documentElement.style.setProperty('--line-height', lh + 'px');
+    document.getElementById('settings-font-select').value = size;
+  }
+
+  function toggleWordWrap(wrap) {
+    const value = wrap ? 'pre-wrap' : 'pre';
+    codeInput.style.whiteSpace = value;
+    codeHighlighted.style.whiteSpace = value;
+    if (wrap) {
+      codeInput.style.wordBreak = 'break-all';
+      codeHighlighted.style.wordBreak = 'break-all';
+    } else {
+      codeInput.style.wordBreak = 'normal';
+      codeHighlighted.style.wordBreak = 'normal';
+    }
+    document.getElementById('settings-wrap-toggle').checked = wrap;
+  }
+
+  // Helper to detect language by file extension
+  function detectLanguage(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    switch(ext) {
+      case 'js': return 'javascript';
+      case 'gs': return 'gas';
+      case 'py': return 'python';
+      case 'cpp':
+      case 'h': return 'cpp';
+      case 'java': return 'java';
+      case 'rs': return 'rust';
+      case 'go': return 'go';
+      case 'rb': return 'ruby';
+      case 'sql': return 'sql';
+      case 'html': return 'html';
+      case 'css': return 'css';
+      default: return 'javascript';
+    }
+  }
+
+  // Custom modal logic for Creating Files (Zero browser prompts)
+  function openNewFileModal() {
+    const modal = document.getElementById('new-file-modal');
+    const input = document.getElementById('new-file-input');
+    const err = document.getElementById('new-file-error');
+    
+    input.value = "";
+    err.style.display = "none";
+    modal.style.display = "flex";
+    input.focus();
+  }
+
+  // Closes dialog overlay
+  function closeNewFileModal() {
+    document.getElementById('new-file-modal').style.display = "none";
+  }
+
+  // Saves new file to memory cache and registers in script Properties VFS
+  function submitNewFile() {
+    const input = document.getElementById('new-file-input');
+    const err = document.getElementById('new-file-error');
+    const filename = input.value.trim();
+    
+    if (filename.length === 0 || filename.includes('/') || filename.includes('\\')) {
+      err.innerText = "Please enter a valid filename.";
+      err.style.display = "block";
+      return;
+    }
+    
+    if (vfsCache[filename]) {
+      err.innerText = "File already exists in workspace.";
+      err.style.display = "block";
+      return;
+    }
+    
+    const lang = detectLanguage(filename);
+    let startContent = "";
+    if (lang === 'python') startContent = "# Python File\nprint('Hello World')\n";
+    else if (lang === 'cpp') startContent = "#include <iostream>\nusing namespace std;\nint main() {\n  cout << \"Hello World\" << endl;\n  return 0;\n}\n";
+    else if (lang === 'html') startContent = "<!DOCTYPE html>\n<html>\n<body>\n  <h1>New HTML File</h1>\n</body>\n</html>\n";
+    else startContent = `// File: ${filename}\n`;
+
+    google.script.run
+      .withSuccessHandler(() => {
+        vfsCache[filename] = { content: startContent, language: lang };
+        closeNewFileModal();
+        renderFileList();
+        loadFileContent(filename);
+      })
+      .withFailureHandler((errObj) => {
+        err.innerText = "Error: " + errObj.message;
+        err.style.display = "block";
+      })
+      .vfsWriteFile(filename, startContent, lang);
+  }
+
+  // Modal key event intercepts
+  document.getElementById('new-file-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitNewFile();
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeNewFileModal();
+    }
+  });
+
+  // Load Virtual File contents (with caching)
+  function loadFileContent(filename) {
+    if (activeFile && vfsCache[activeFile]) {
+      vfsCache[activeFile].content = codeInput.value;
+    }
+    
+    activeFile = filename;
+    activeLanguage = detectLanguage(filename);
+    
+    const breadcrumbFilename = document.getElementById('breadcrumb-filename');
+    if (filename) {
+      breadcrumbFilename.innerHTML = `${getFileIconSVG(filename)} <span style="margin-left: 4px;">${filename}</span>`;
+    } else {
+      breadcrumbFilename.innerHTML = `<span>none</span>`;
+    }
+    statusLeft.innerText = "Active: " + filename;
+    
+    const fileData = vfsCache[filename] || { content: "", language: activeLanguage };
+    codeInput.value = fileData.content;
+    
+    // Real-time static linter run
+    runLinter();
+    
+    updateCursorPos();
+    syncLivePreview();
+    
+    if (!openFiles.includes(filename)) {
+      openFiles.push(filename);
+    }
+    
+    updateTabUI();
+    updateFileListActive();
+  }
+
+  function saveActiveFile() {
+    if (!activeFile) return;
+    statusLeft.innerText = "Saving file...";
+    
+    const content = codeInput.value;
+    vfsCache[activeFile].content = content;
+    
+    google.script.run
+      .withSuccessHandler(() => {
+        dirtyFiles[activeFile] = false;
+        updateTabUI();
+        statusLeft.innerText = "Saved successfully";
+        setTimeout(() => { statusLeft.innerText = "Idle"; }, 2000);
+      })
+      .withFailureHandler((err) => {
+        terminalOutput.innerText += `\n[VFS ERROR] Save failed: ` + err.message;
+        statusLeft.innerText = "Save failed";
+      })
+      .vfsWriteFile(activeFile, content, activeLanguage);
+  }
+
+  function deleteFile(filename, event) {
+    if (event) event.stopPropagation();
+    if (!confirm(`Are you sure you want to delete file "${filename}"?`)) return;
+    
+    google.script.run
+      .withSuccessHandler(() => {
+        openFiles = openFiles.filter(f => f !== filename);
+        delete dirtyFiles[filename];
+        delete vfsCache[filename];
+        
+        if (activeFile === filename) {
+          activeFile = openFiles.length > 0 ? openFiles[0] : Object.keys(vfsCache)[0] || null;
+          if (activeFile) {
+            loadFileContent(activeFile);
+          } else {
+            codeInput.value = "";
+            activeLanguage = 'javascript';
+            updateLineNumbers();
+            highlightCode();
+            updateCursorPos();
+            syncLivePreview();
+            document.getElementById('breadcrumb-filename').innerHTML = "<span>none</span>";
+          }
+        }
+        
+        renderFileList();
+        updateTabUI();
+      })
+      .withFailureHandler((err) => {
+        alert("Failed to delete file: " + err.message);
+      })
+      .vfsDeleteFile(filename);
+  }
+
+  function initVFSCache() {
+    statusLeft.innerText = "Connecting VFS...";
+    google.script.run
+      .withSuccessHandler((filesData) => {
+        vfsCache = filesData;
+        renderFileList();
+        
+        const keys = Object.keys(vfsCache);
+        if (keys.length > 0) {
+          loadFileContent(keys[0]);
+        }
+        statusLeft.innerText = "Ready";
+      })
+      .withFailureHandler((err) => {
+        statusLeft.innerText = "Connection Failed";
+        console.error("VFS Loading Failure:", err.message);
+        alert("Virtual File System Initialization Failed:\n" + err.message);
+      })
+      .vfsGetAllFiles();
+  }
+
+  function renderFileList() {
+    const searchVal = document.getElementById('file-search-input').value.toLowerCase();
+    fileListContainer.innerHTML = "";
+    
+    Object.keys(vfsCache).forEach(filename => {
+      if (searchVal && !filename.toLowerCase().includes(searchVal)) return;
+      
+      const div = document.createElement('div');
+      div.className = `file-item ${filename === activeFile ? 'active' : ''}`;
+      div.setAttribute('data-filename', filename);
+      div.addEventListener('click', () => loadFileContent(filename));
+      
+      div.innerHTML = `
+        <div class="file-name-container">
+          ${getFileIconSVG(filename)}
+          <span>${filename}</span>
+        </div>
+        <button class="file-delete-btn" onclick="deleteFile('${filename}', event)">✕</button>
+      `;
+      fileListContainer.appendChild(div);
+    });
+  }
+
+  function updateFileListActive() {
+    const items = fileListContainer.querySelectorAll('.file-item');
+    items.forEach(item => {
+      const filename = item.getAttribute('data-filename');
+      if (filename === activeFile) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+  }
+
+  function updateTabUI() {
+    tabsBar.innerHTML = "";
+    openFiles.forEach(filename => {
+      const tab = document.createElement('div');
+      tab.className = `tab ${filename === activeFile ? 'active' : ''}`;
+      
+      const icon = getFileIconSVG(filename);
+      const displayContent = dirtyFiles[filename] 
+        ? `${icon} <span>${filename}</span><span class="dirty-indicator"></span>` 
+        : `${icon} <span>${filename}</span><span class="tab-close" onclick="closeTab('${filename}', event)">✕</span>`;
+      
+      tab.innerHTML = displayContent;
+      tab.addEventListener('click', () => {
+        if (activeFile !== filename) {
+          loadFileContent(filename);
+        }
+      });
+      tabsBar.appendChild(tab);
+    });
+  }
+
+  function closeTab(filename, event) {
+    if (event) event.stopPropagation();
+    openFiles = openFiles.filter(f => f !== filename);
+    
+    if (activeFile === filename) {
+      activeFile = openFiles.length > 0 ? openFiles[openFiles.length - 1] : Object.keys(vfsCache)[0] || null;
+      if (activeFile) {
+        loadFileContent(activeFile);
+      } else {
+        codeInput.value = "";
+        activeLanguage = 'javascript';
+        updateLineNumbers();
+        highlightCode();
+        updateCursorPos();
+        syncLivePreview();
+        document.getElementById('breadcrumb-filename').innerHTML = "<span>none</span>";
+      }
+    }
+    updateTabUI();
+    updateFileListActive();
+  }
+
+  function performCrossFileSearch() {
+    const query = document.getElementById('search-query-input').value;
+    const resultsContainer = document.getElementById('search-results');
+    resultsContainer.innerHTML = "";
+    
+    if (!query) {
+      document.getElementById('search-results-count').innerText = "No query entered";
+      return;
+    }
+    
+    let totalMatches = 0;
+    
+    Object.entries(vfsCache).forEach(([filename, fileData]) => {
+      const content = fileData.content;
+      const lines = content.split('\n');
+      const fileMatches = [];
+      
+      lines.forEach((line, index) => {
+        if (line.toLowerCase().includes(query.toLowerCase())) {
+          fileMatches.push({
+            lineNum: index + 1,
+            text: line
+          });
+        }
+      });
+      
+      if (fileMatches.length > 0) {
+        totalMatches += fileMatches.length;
+        const fileBlock = document.createElement('div');
+        fileBlock.className = 'search-file-block';
+        
+        fileBlock.innerHTML = `
+          <div class="search-file-header" onclick="toggleSearchBlock(this)">
+            <span class="chevron">▼</span> <strong>${filename}</strong> <span class="match-count">${fileMatches.length}</span>
+          </div>
+          <div class="search-file-matches">
+            ${fileMatches.map(m => `
+              <div class="search-match-item" onclick="openFileAtLine('${filename}', ${m.lineNum})">
+                <span class="match-line-num">${m.lineNum}:</span>
+                <span class="match-text">${escapeHtml(m.text.trim())}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        resultsContainer.appendChild(fileBlock);
+      }
+    });
+    
+    document.getElementById('search-results-count').innerText = `${totalMatches} result(s) found`;
+  }
+
+  function toggleSearchBlock(elem) {
+    const container = elem.nextElementSibling;
+    const chevron = elem.querySelector('.chevron');
+    if (container.style.display === 'none') {
+      container.style.display = 'block';
+      chevron.style.transform = 'rotate(0deg)';
+    } else {
+      container.style.display = 'none';
+      chevron.style.transform = 'rotate(-90deg)';
+    }
+  }
+
+  function openFileAtLine(filename, lineNum) {
+    loadFileContent(filename);
+    
+    const lines = codeInput.value.split('\n');
+    let charIndex = 0;
+    for (let i = 0; i < Math.min(lineNum - 1, lines.length); i++) {
+      charIndex += lines[i].length + 1;
+    }
+    
+    codeInput.focus();
+    codeInput.selectionStart = codeInput.selectionEnd = charIndex;
+    updateCursorPos();
+    
+    const scrollContainer = document.getElementById('editor-scroll');
+    const lineHt = Number(getComputedStyle(document.documentElement).getPropertyValue('--line-height').replace('px', ''));
+    scrollContainer.scrollTop = Math.max(0, (lineNum - 5) * lineHt);
+  }
+
+  function switchPanelTab(tabName) {
+    document.querySelectorAll('.bottom-panel-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel-pane').forEach(p => p.classList.remove('active'));
+    
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    document.getElementById(`pane-${tabName}`).classList.add('active');
+  }
+
+  function togglePanelSize() {
+    const panel = document.getElementById('bottom-panel');
+    if (panel.style.height === '40px') {
+      panel.style.height = '220px';
+    } else if (panel.style.height === '220px') {
+      panel.style.height = '70%';
+    } else {
+      panel.style.height = '40px';
+    }
+  }
+
+  function runCode() {
+    if (!activeFile) return;
+    if (executionActive) return;
+    
+    if (dirtyFiles[activeFile]) {
+      saveActiveFile();
+    }
+    
+    executionInputBuffer = [];
+    executionActive = true;
+    
+    if (runBtn) {
+      runBtn.disabled = true;
+      runBtn.innerHTML = "<span>⏳</span> Running...";
+    }
+    statusLeft.innerText = "Running code...";
+    
+    clearProblems();
+    switchPanelTab('terminal');
+    
+    terminalOutput.innerHTML = "> Compiling and executing script...\n";
+    terminalOutput.style.color = "#00ff00";
+    
+    executeStep();
+  }
+
+  function executeStep() {
+    google.script.run
+      .withSuccessHandler((responseStr) => {
+        const response = JSON.parse(responseStr);
+        handleExecutionResponse(response);
+      })
+      .withFailureHandler((err) => {
+        showTerminalError(err.message);
+      })
+      .compileAndRun(activeFile, codeInput.value, activeLanguage, executionInputBuffer);
+  }
+
+  function handleExecutionResponse(response) {
+    terminalOutput.innerHTML = "";
+    
+    if (response.logs && response.logs.length > 0) {
+      terminalOutput.innerText = response.logs.join('\n') + '\n';
+    }
+    
+    if (response.status === 'success') {
+      terminalOutput.innerText += "\n[SUCCESS] Execution completed successfully.\n";
+      resetRunningUI();
+    } 
+    else if (response.status === 'waiting_for_input') {
+      const inputRow = document.createElement('div');
+      inputRow.className = 'terminal-input-row';
+      inputRow.innerHTML = `<span>? [INPUT REQUIRED] Enter value: </span><input type="text" id="terminal-cli-input" autocomplete="off" autofocus />`;
+      terminalOutput.appendChild(inputRow);
+      
+      const cliInput = document.getElementById('terminal-cli-input');
+      cliInput.focus();
+      
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+      
+      cliInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const val = cliInput.value;
+          executionInputBuffer.push(val);
+          inputRow.innerHTML = `<span>? [INPUT REQUIRED] Enter value: <strong>${escapeHtml(val)}</strong></span>`;
+          executeStep();
+        }
+      });
+    } 
+    else if (response.status === 'error') {
+      terminalOutput.innerText += `\n[COMPILER/RUNTIME ERROR]: ${response.message}\n`;
+      terminalOutput.style.color = "#ff4444";
+      
+      logProblem(response.message);
+      resetRunningUI();
+    }
+    
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  }
+
+  function showTerminalError(message) {
+    terminalOutput.innerText += `\n[FATAL IDE ERROR]: ${message}\n`;
+    terminalOutput.style.color = "#ff0000";
+    resetRunningUI();
+  }
+
+  function resetRunningUI() {
+    executionActive = false;
+    if (runBtn) {
+      runBtn.disabled = false;
+      runBtn.innerHTML = "<span>▶</span> Run Active File";
+    }
+    statusLeft.innerText = "Idle";
+    
+    const debugVars = document.getElementById('debugger-vars');
+    debugVars.innerText = `File: ${activeFile}\nStatus: Stopped\nBuffer Consumed: ${executionInputBuffer.length} items`;
+  }
+
+  function logProblem(message) {
+    const lineMatch = message.match(/Line\s+(\d+)/i) || message.match(/:(\d+)/);
+    const targetLine = lineMatch ? Number(lineMatch[1]) : 1;
+    
+    if (!runtimeProblems[activeFile]) {
+      runtimeProblems[activeFile] = [];
+    }
+    runtimeProblems[activeFile].push({
+      line: targetLine,
+      severity: 'error',
+      message: message
+    });
+    updateProblemsUI();
+  }
+
+  function clearProblems() {
+    if (activeFile) {
+      runtimeProblems[activeFile] = [];
+      updateProblemsUI();
+    }
+  }
+
+  // Bracket balance linter that ignores comments and string contents
+  function checkBrackets(content) {
+    const stack = [];
+    const problems = [];
+    
+    let inString = false;
+    let stringChar = "";
+    let inComment = false;
+    let inMultiLineComment = false;
+    
+    const lines = content.split('\n');
+    for (let r = 0; r < lines.length; r++) {
+      const line = lines[r];
+      const lineNum = r + 1;
+      
+      for (let c = 0; c < line.length; c++) {
+        const char = line[c];
+        const nextChar = line[c+1] || "";
+        
+        if (inComment) {
+          break;
+        }
+        if (inMultiLineComment) {
+          if (char === '*' && nextChar === '/') {
+            inMultiLineComment = false;
+            c++;
+          }
+          continue;
+        }
+        if (char === '/' && nextChar === '/' && !inString) {
+          inComment = true;
+          break;
+        }
+        if (char === '/' && nextChar === '*' && !inString) {
+          inMultiLineComment = true;
+          c++;
+          continue;
+        }
+        
+        if (inString) {
+          if (char === '\\') {
+            c++;
+          } else if (char === stringChar) {
+            inString = false;
+          }
+          continue;
+        }
+        if ((char === '"' || char === "'" || char === '`')) {
+          inString = true;
+          stringChar = char;
+          continue;
+        }
+        
+        if (char === '{' || char === '(' || char === '[') {
+          stack.push({ char: char, line: lineNum, col: c + 1 });
+        } else if (char === '}' || char === ')' || char === ']') {
+          if (stack.length === 0) {
+            problems.push({
+              line: lineNum,
+              severity: 'error',
+              message: `Syntax Error: Unexpected closing bracket '${char}' without opening matching bracket.`
+            });
+          } else {
+            const top = stack.pop();
+            const expected = { '{': '}', '(': ')', '[': ']' }[top.char];
+            if (char !== expected) {
+              problems.push({
+                line: lineNum,
+                severity: 'error',
+                message: `Syntax Error: Mismatched bracket. Expected '${expected}' but found '${char}'.`
+              });
+            }
+          }
+        }
+      }
+      inComment = false;
+    }
+    
+    while (stack.length > 0) {
+      const top = stack.pop();
+      problems.push({
+        line: top.line,
+        severity: 'error',
+        message: `Syntax Error: Unclosed opening bracket '${top.char}' (no matching closing bracket found).`
+      });
+    }
+    
+    return problems;
+  }
+
+  // Real-time static linter
+  function runLinter() {
+    if (!activeFile) return;
+    const content = codeInput.value;
+    const lang = activeLanguage;
+    const problems = [];
+    
+    // 1. Bracket balances
+    const bracketProblems = checkBrackets(content);
+    problems.push(...bracketProblems);
+    
+    // 2. Semicolon linting warnings
+    if (['java', 'cpp', 'javascript', 'gas'].includes(lang)) {
+      const lines = content.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        const lineNum = i + 1;
+        
+        if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*') || trimmed.startsWith('#')) {
+          continue;
+        }
+        
+        const statementRegex = /\b(let|const|var|int|double|float|char|boolean|String|return|cout|cin|printf|System\.out)\b/;
+        if (statementRegex.test(trimmed) && 
+            !trimmed.endsWith(';') && 
+            !trimmed.endsWith('{') && 
+            !trimmed.endsWith('}') && 
+            !trimmed.endsWith(',') &&
+            !trimmed.endsWith('(') &&
+            !trimmed.endsWith('[')) {
+          problems.push({
+            line: lineNum,
+            severity: 'warning',
+            message: `Problem: Missing semicolon at the end of statement.`
+          });
+        }
+      }
+    }
+    
+    lintProblems[activeFile] = problems;
+    updateProblemsUI();
+  }
+
+  // Synchronize and render problems to Problems list tab and gutter/editor overlays
+  function updateProblemsUI() {
+    if (!activeFile) return;
+    
+    const lP = lintProblems[activeFile] || [];
+    const rP = runtimeProblems[activeFile] || [];
+    activeFileProblems[activeFile] = [...rP, ...lP];
+    
+    updateLineNumbers();
+    highlightCode();
+    
+    const pane = document.getElementById('problems-output');
+    const badge = document.getElementById('problems-count');
+    const allProblems = [];
+    
+    Object.entries(activeFileProblems).forEach(([filename, fileProbs]) => {
+      fileProbs.forEach(p => {
+        allProblems.push({
+          filename: filename,
+          ...p
+        });
+      });
+    });
+    
+    if (allProblems.length === 0) {
+      pane.innerHTML = "No problems have been detected in the workspace.";
+      badge.style.display = "none";
+    } else {
+      pane.innerHTML = "";
+      badge.innerText = allProblems.length;
+      badge.style.display = "inline-block";
+      
+      allProblems.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'problem-item';
+        div.style.color = p.severity === 'error' ? '#ff5555' : '#ffb86c';
+        div.style.backgroundColor = p.severity === 'error' ? 'rgba(255, 0, 0, 0.05)' : 'rgba(255, 165, 0, 0.05)';
+        div.style.borderLeft = `3px solid ${p.severity === 'error' ? '#ff5555' : '#ffb86c'}`;
+        div.style.margin = '4px 0';
+        div.style.padding = '6px 10px';
+        div.style.display = 'flex';
+        div.style.gap = '8px';
+        div.style.cursor = 'pointer';
+        
+        const icon = p.severity === 'error' ? '❌' : '⚠️';
+        const typeLabel = p.severity === 'error' ? 'Error' : 'Problem';
+        
+        div.innerHTML = `
+          <span style="font-size: 13px;">${icon}</span>
+          <div style="flex: 1;">
+            <div style="font-weight: bold; font-size: 12px; margin-bottom: 2px;">
+              [${typeLabel}] ${escapeHtml(p.message)}
+            </div>
+            <div style="font-size: 10px; color: var(--text-dark);">
+              file:///${p.filename} : Line ${p.line}
+            </div>
+          </div>
+        `;
+        div.addEventListener('click', () => {
+          openFileAtLine(p.filename, p.line);
+        });
+        pane.appendChild(div);
+      });
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    initVFSCache();
+  });
+</script>

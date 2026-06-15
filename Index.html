@@ -2,289 +2,236 @@
 <html>
 <head>
   <base target="_top">
-  <style>
-    :root {
-      --bg-main: #1e1e1e;
-      --bg-side: #252526;
-      --bg-terminal: #000000;
-      --text-main: #d4d4d4;
-      --border: #444444;
-      --accent: #007acc;
-      --line-num: #858585;
-    }
+  <!-- Prevents system dark-mode flag from force-inverting or breaking styling -->
+  <meta name="color-scheme" content="dark">
+  <?!= HtmlService.createHtmlOutputFromFile('CSS').getContent(); ?>
 
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow: hidden;
-    }
-
-    /* IDE Layout */
-    .container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-
-    .toolbar {
-      height: 35px;
-      background-color: var(--bg-side);
-      display: flex;
-      align-items: center;
-      padding: 0 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .workspace {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* Custom Editor */
-    .editor-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid var(--border);
-    }
-
-    .editor-wrapper {
-      flex: 1;
-      display: flex;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #line-numbers {
-      width: 45px;
-      background-color: var(--bg-side);
-      color: var(--line-num);
-      text-align: right;
-      padding: 10px 5px;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 14px;
-      line-height: 20px;
-      user-select: none;
-      overflow: hidden;
-    }
-
-    #code-input {
-      flex: 1;
-      background: transparent;
-      color: var(--text-main);
-      border: none;
-      padding: 10px;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 14px;
-      line-height: 20px;
-      resize: none;
-      outline: none;
-      white-space: pre;
-      overflow: auto;
-    }
-
-    /* Terminal */
-    .terminal-container {
-      width: 40%;
-      display: flex;
-      flex-direction: column;
-      background-color: var(--bg-terminal);
-    }
-
-    .terminal-header {
-      background-color: var(--bg-side);
-      padding: 5px 10px;
-      font-size: 12px;
-      border-bottom: 1px solid var(--border);
-      color: #aaa;
-    }
-
-    #terminal-output {
-      flex: 1;
-      padding: 10px;
-      font-family: 'Consolas', 'Courier New', monospace;
-      font-size: 13px;
-      color: #00ff00;
-      overflow-y: auto;
-      white-space: pre-wrap;
-    }
-
-    /* Status Bar */
-    .status-bar {
-      height: 22px;
-      background-color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 10px;
-      font-size: 12px;
-      color: white;
-    }
-
-    /* UI Elements */
-    .run-btn {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 4px 12px;
-      font-size: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 2px;
-    }
-
-    .run-btn:hover { background-color: #218838; }
-    .run-btn:disabled { background-color: #555; cursor: not-allowed; }
-
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-thumb { background: #444; }
-    ::-webkit-scrollbar-thumb:hover { background: #555; }
-  </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="toolbar">
-    <button class="run-btn" id="run-btn" onclick="runCode()">▶ RUN CODE</button>
-    <span style="margin-left: 20px; font-size: 13px; color: #888;">Zero-Dep GAS IDE v1.0</span>
+  <!-- Top Bar -->
+  <div class="title-bar">
+    <div class="menu-items">
+      <span class="menu-item" onclick="saveActiveFile()">File: Save</span>
+      <span class="menu-item" onclick="runCode()">Run: Execute</span>
+      <span class="menu-item" onclick="openNewFileModal()">VFS: New File</span>
+    </div>
+    <div style="font-weight: bold; color: var(--accent);">GAS CLOUD IDE (V8 Engine)</div>
   </div>
 
   <div class="workspace">
-    <!-- Custom Text Editor -->
-    <div class="editor-container">
-      <div class="editor-wrapper">
-        <div id="line-numbers">1</div>
-        <textarea id="code-input" spellcheck="false">// Welcome to Zero-Dep IDE
-LET x = 1
-LET limit = 10
-
-PRINT "Calculating sequence..."
-
-WHILE x <= limit
-  PRINT "Step: " + x
-  ADD x 1
-ENDWHILE
-
-PRINT "Done!"</textarea>
+    <!-- Activity Bar (Icons) -->
+    <div class="activity-bar">
+      <div class="activity-icons">
+        <!-- Explorer icon -->
+        <div class="activity-icon active" id="icon-explorer" onclick="showSidebarPanel('explorer')" title="Explorer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </div>
+        <!-- Search icon -->
+        <div class="activity-icon" id="icon-search" onclick="showSidebarPanel('search')" title="Search Across Files">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <!-- Run icon -->
+        <div class="activity-icon" id="icon-debug" onclick="showSidebarPanel('debug')" title="Run and Debug">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </div>
+      </div>
+      <!-- Settings icon -->
+      <div class="activity-icon" id="icon-settings" onclick="showSidebarPanel('settings')" title="Settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
       </div>
     </div>
 
-    <!-- Terminal -->
-    <div class="terminal-container">
-      <div class="terminal-header">TERMINAL</div>
-      <div id="terminal-output">Ready for execution.</div>
+    <!-- Sidebar Panels -->
+    <div class="sidebar" id="sidebar">
+      <!-- Explorer Panel -->
+      <div class="sidebar-panel" id="explorer-panel">
+        <div class="sidebar-header">
+          <span>Files Explorer</span>
+          <div class="sidebar-actions">
+            <button class="icon-btn" onclick="openNewFileModal()" title="New File">✚</button>
+          </div>
+        </div>
+        <div class="file-search-box">
+          <input type="text" id="file-search-input" placeholder="Search files..." oninput="renderFileList()" />
+        </div>
+        <div class="file-list" id="file-list"></div>
+      </div>
+
+      <!-- Search Panel -->
+      <div class="sidebar-panel" id="search-panel" style="display: none;">
+        <div class="sidebar-header">
+          <span>Search in Files</span>
+        </div>
+        <div class="search-panel-inputs">
+          <input type="text" id="search-query-input" placeholder="Search text..." oninput="performCrossFileSearch()" />
+        </div>
+        <div class="search-results-container">
+          <div class="search-results-summary" id="search-results-count">No query entered</div>
+          <div id="search-results"></div>
+        </div>
+      </div>
+
+      <!-- Run & Debug Panel -->
+      <div class="sidebar-panel" id="debug-panel" style="display: none;">
+        <div class="sidebar-header">
+          <span>Run and Debug</span>
+        </div>
+        <div class="debug-panel-content">
+          <button class="debug-play-btn" id="run-btn" onclick="runCode()">
+            <span>▶</span> Run Active File
+          </button>
+          <div class="setting-group" style="margin-top: 10px;">
+            <label>Variables Inspector</label>
+            <div style="font-size: 11px; color: var(--text-dark); font-family: monospace;" id="debugger-vars">
+              No active session
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="sidebar-panel" id="settings-panel" style="display: none;">
+        <div class="sidebar-header">
+          <span>Settings</span>
+        </div>
+        <div class="settings-panel-content">
+          <!-- Active Theme -->
+          <div class="setting-group">
+            <label>Color Theme</label>
+            <select id="settings-theme-select" onchange="changeTheme(this.value)">
+              <option value="darkplus">VS Code Dark+</option>
+              <option value="monokai">Monokai</option>
+              <option value="dracula">Dracula</option>
+              <option value="solarized">Solarized Dark</option>
+            </select>
+          </div>
+          <!-- Font size -->
+          <div class="setting-group">
+            <label>Font Size</label>
+            <select id="settings-font-select" onchange="changeFontSize(Number(this.value))">
+              <option value="12">12px</option>
+              <option value="14" selected>14px</option>
+              <option value="16">16px</option>
+              <option value="18">18px</option>
+            </select>
+          </div>
+          <!-- Word Wrap -->
+          <div class="setting-group" style="flex-direction: row; justify-content: space-between; align-items: center;">
+            <label>Word Wrap</label>
+            <input type="checkbox" id="settings-wrap-toggle" onchange="toggleWordWrap(this.checked)" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Editor & Terminal Area -->
+    <div class="main-editor-area">
+      <!-- Tabs -->
+      <div class="tabs-bar" id="tabs-bar"></div>
+
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs" id="breadcrumbs">
+        <div class="breadcrumb-item">workspace</div>
+        <span class="breadcrumb-separator">&gt;</span>
+        <div class="breadcrumb-item" id="breadcrumb-filename">none</div>
+      </div>
+
+      <!-- Split editor workspace -->
+      <div class="editor-workspace-split">
+        <!-- Editor -->
+        <div class="editor-wrapper">
+          <div id="line-numbers">1</div>
+          <div class="editor-scroll-container" id="editor-scroll">
+            <pre id="code-highlighted" aria-hidden="true"><code id="code-content-layer"></code></pre>
+            <textarea id="code-input" spellcheck="false" autocomplete="off"></textarea>
+          </div>
+        </div>
+
+        <!-- HTML Preview Frame -->
+        <div class="preview-pane" id="preview-pane">
+          <div class="preview-header">
+            <span>Live Web Preview</span>
+            <button class="icon-btn" onclick="togglePreviewPane(false)">✕ Close</button>
+          </div>
+          <iframe class="preview-iframe" id="preview-iframe"></iframe>
+        </div>
+
+        <!-- Suggestions Popup -->
+        <div class="suggestions-menu" id="suggestions-menu">
+          <div class="suggestions-list" id="suggestions-list"></div>
+          <div class="suggestion-doc" id="suggestions-doc"></div>
+        </div>
+      </div>
+
+      <!-- Bottom Panel (Console & Problems) -->
+      <div class="bottom-panel" id="bottom-panel">
+        <div class="bottom-panel-header">
+          <div class="bottom-panel-tabs">
+            <div class="bottom-panel-tab active" id="tab-terminal" onclick="switchPanelTab('terminal')">Terminal</div>
+            <div class="bottom-panel-tab" id="tab-problems" onclick="switchPanelTab('problems')">
+              Problems <span class="panel-badge" id="problems-count" style="display: none;">0</span>
+            </div>
+          </div>
+          <div class="bottom-panel-actions">
+            <button class="icon-btn" onclick="clearTerminal()" title="Clear Terminal">⃠</button>
+            <button class="icon-btn" onclick="togglePanelSize()" title="Toggle Size">⤢</button>
+          </div>
+        </div>
+        <div class="bottom-panel-content">
+          <!-- Terminal Tab Pane -->
+          <div class="panel-pane active" id="pane-terminal">
+            <div id="terminal-output">Ready for execution.</div>
+          </div>
+          <!-- Problems Tab Pane -->
+          <div class="panel-pane" id="pane-problems">
+            <div id="problems-output">No problems have been detected in the workspace.</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- Status Bar -->
   <div class="status-bar">
-    <div id="status-left">Idle</div>
-    <div id="status-right">Line: 1, Col: 1</div>
+    <div id="status-left">Ready</div>
+    <div id="status-right">Spaces: 2 | UTF-8 | LF | JavaScript</div>
   </div>
 </div>
 
-<script>
-  const codeInput = document.getElementById('code-input');
-  const lineNumbers = document.getElementById('line-numbers');
-  const terminalOutput = document.getElementById('terminal-output');
-  const runBtn = document.getElementById('run-btn');
-  const statusLeft = document.getElementById('status-left');
-  const statusRight = document.getElementById('status-right');
+<!-- Custom Dialog Modal for Creating New File (Replaces browser handled prompts) -->
+<div id="new-file-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 20000; align-items: center; justify-content: center; user-select: none;">
+  <div style="background-color: var(--bg-side); border: 1px solid var(--border); border-radius: 5px; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column;">
+    <div style="padding: 12px 16px; font-weight: bold; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-main);">
+      <span>Create New File</span>
+      <button onclick="closeNewFileModal()" style="background: none; border: none; color: var(--text-dark); cursor: pointer; font-size: 16px; outline: none;">✕</button>
+    </div>
+    <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <label style="font-size: 11px; color: var(--text-dark); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">File Name</label>
+      <input type="text" id="new-file-input" placeholder="e.g. script.py, index.html" style="background-color: #3c3c3c; border: 1px solid var(--border); color: white; padding: 8px 10px; border-radius: 3px; font-size: 13px; outline: none; font-family: inherit;" />
+      <div id="new-file-error" style="color: #ff5555; font-size: 11px; display: none;">Please enter a valid filename.</div>
+    </div>
+    <div style="padding: 12px 16px; background-color: var(--bg-activity); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px;">
+      <button onclick="closeNewFileModal()" style="background-color: #555; color: white; border: none; padding: 6px 14px; border-radius: 3px; cursor: pointer; font-size: 12px; outline: none;">Cancel</button>
+      <button onclick="submitNewFile()" style="background-color: var(--accent); color: white; border: none; padding: 6px 14px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: bold; outline: none;">Create</button>
+    </div>
+  </div>
+</div>
 
-  /**
-   * Sync Scrolling between Line Numbers and Textarea
-   */
-  codeInput.addEventListener('scroll', () => {
-    lineNumbers.scrollTop = codeInput.scrollTop;
-  });
+<?!= HtmlService.createHtmlOutputFromFile('JS').getContent(); ?>
 
-  /**
-   * Update Line Numbers dynamically
-   */
-  function updateLineNumbers() {
-    const lines = codeInput.value.split('\n').length;
-    let numbers = '';
-    for (let i = 1; i <= lines; i++) {
-      numbers += i + '<br>';
-    }
-    lineNumbers.innerHTML = numbers;
-  }
-
-  /**
-   * Update Cursor Position Status
-   */
-  function updateCursorPos() {
-    const textBefore = codeInput.value.substring(0, codeInput.selectionStart);
-    const lines = textBefore.split('\n');
-    const currLine = lines.length;
-    const currCol = lines[lines.length - 1].length + 1;
-    statusRight.innerText = `Line: ${currLine}, Col: ${currCol}`;
-  }
-
-  /**
-   * Intercept Tab key for 2-space indentation
-   */
-  codeInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const start = codeInput.selectionStart;
-      const end = codeInput.selectionEnd;
-      codeInput.value = codeInput.value.substring(0, start) + "  " + codeInput.value.substring(end);
-      codeInput.selectionStart = codeInput.selectionEnd = start + 2;
-      updateLineNumbers();
-    }
-    
-    // Ctrl + Enter shortcut to run
-    if (e.ctrlKey && e.key === 'Enter') {
-      runCode();
-    }
-  });
-
-  codeInput.addEventListener('input', () => {
-    updateLineNumbers();
-    updateCursorPos();
-  });
-
-  codeInput.addEventListener('mouseup', updateCursorPos);
-  codeInput.addEventListener('keyup', updateCursorPos);
-
-  /**
-   * Execute code on Backend
-   */
-  function runCode() {
-    const code = codeInput.value;
-    
-    // UI Feedback
-    runBtn.disabled = true;
-    statusLeft.innerText = "Compiling & Running...";
-    terminalOutput.innerText = "> Executing script...\n";
-    terminalOutput.style.color = "#00ff00";
-
-    google.script.run
-      .withSuccessHandler((result) => {
-        terminalOutput.innerText += result;
-        terminalOutput.scrollTop = terminalOutput.scrollHeight;
-        runBtn.disabled = false;
-        statusLeft.innerText = result.includes("[COMPILER ERROR]") ? "Error" : "Success";
-        if (result.includes("[COMPILER ERROR]")) terminalOutput.style.color = "#ff4444";
-        setTimeout(() => { statusLeft.innerText = "Idle"; }, 3000);
-      })
-      .withFailureHandler((err) => {
-        terminalOutput.innerText += "\n[FATAL SYSTEM ERROR]: " + err.message;
-        terminalOutput.style.color = "#ff0000";
-        runBtn.disabled = false;
-        statusLeft.innerText = "Fatal Error";
-      })
-      .compileAndRun(code);
-  }
-
-  // Initial call to set line numbers
-  updateLineNumbers();
-</script>
 
 </body>
 </html>
