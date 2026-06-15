@@ -1,4 +1,14 @@
-# GAS Cloud IDE: VS Code Clone
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg" width="120" alt="VS Code Logo" />
+</p>
+
+<h1 align="center">GAS Cloud IDE: VS Code Clone</h1>
+
+<p align="center">
+  <b>Built by <a href="https://github.com/Cancelllls">Cancellls</a></b>
+</p>
+
+---
 
 A 100% self-contained, zero-dependency cloud programming workspace deployed as a Google Apps Script Web App. This project mimics the VS Code experience entirely through native HTML, CSS, and Vanilla JavaScript, requiring zero external libraries or CDNs.
 
