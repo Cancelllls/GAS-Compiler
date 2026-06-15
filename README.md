@@ -73,4 +73,3 @@ A 100% self-contained, zero-dependency cloud programming workspace deployed as a
 
 ---
 
-*Built with ❤️ using Gemini CLI*
